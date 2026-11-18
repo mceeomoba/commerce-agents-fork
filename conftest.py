@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,15 @@ from shopping_agent import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parent
+
+# The MCP servers are single modules in hyphenated directories.
+for server_dir in (
+    REPO_ROOT / "shopping-agent" / "managed-agents" / "storefront-mcp-server",
+    REPO_ROOT / "merchant-agent" / "managed-agents" / "merchant-mcp-server",
+):
+    if str(server_dir) not in sys.path:
+        sys.path.insert(0, str(server_dir))
+
 
 # -- shopping role -------------------------------------------------------------------------
 
