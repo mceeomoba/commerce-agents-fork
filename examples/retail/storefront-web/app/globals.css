@@ -95,3 +95,33 @@ body {
   background: var(--well);
   color: var(--ink-soft);
 }
+
+/* Storefront motion. Everything is disabled under prefers-reduced-motion. */
+@keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-left { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes toast { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); background: var(--accent-soft); } 100% { transform: scale(1); } }
+@keyframes drift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes grow { from { width: 0; } }
+.tile-in { animation: rise 420ms cubic-bezier(.2,.7,.2,1) both; }
+.hero-in { animation: rise 520ms cubic-bezier(.2,.7,.2,1) both; }
+.fade-in { animation: fade 180ms ease-out both; }
+.drawer-in { animation: slide-left 280ms cubic-bezier(.2,.7,.2,1) both; }
+.dialog-in { animation: pop 260ms cubic-bezier(.2,.7,.2,1) both; }
+.toast-in { animation: toast 220ms ease-out both; }
+.bump { animation: bump 360ms ease-out; }
+.lift { transition: transform 180ms ease, box-shadow 180ms ease; }
+.lift:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.hero { background: linear-gradient(120deg, #1e2c4f, #3b4a86, #c4643f, #1e2c4f); background-size: 300% 300%; animation: drift 14s ease infinite; }
+.pill { border: 1px solid rgba(255,255,255,.45); border-radius: 999px; padding: 4px 12px; font-size: 12.5px; text-transform: capitalize; transition: background 150ms, transform 150ms; }
+.pill:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+.pill-on { background: #fff; color: var(--ink); }
+.rail { height: 6px; border-radius: 999px; background: var(--well); overflow: hidden; }
+.rail-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ok), #5fcf9d); animation: grow 900ms cubic-bezier(.2,.7,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .tile-in, .hero-in, .fade-in, .drawer-in, .dialog-in, .toast-in, .bump, .hero, .rail-fill { animation: none !important; }
+  .lift, .pill { transition: none; }
+  .lift:hover { transform: none; }
+}

@@ -138,7 +138,7 @@ export default function ShopPage() {
     <aside aria-label="Cart" className="flex h-full flex-col bg-white">
       <div className="flex items-center justify-between border-b border-(--line,#e5e7eb) px-4 py-3">
         <div className="font-semibold text-(--ink)">
-          Cart <span className="ml-1 rounded-full bg-(--well) px-2 py-0.5 text-xs">{count === 1 ? "1 item" : `${count} items`}</span>
+          Cart <span key={count} className="bump ml-1 rounded-full bg-(--well) px-2 py-0.5 text-xs">{count === 1 ? "1 item" : `${count} items`}</span>
         </div>
         <button className="text-sm text-(--ink-soft) md:hidden" onClick={() => setCartOpen(false)}>
           Close
@@ -220,12 +220,25 @@ export default function ShopPage() {
       <div className="flex min-h-0 flex-1">
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 md:px-8">
           {message ? (
-            <div role="status" className="fixed left-1/2 top-16 z-30 -translate-x-1/2 rounded-lg bg-(--ink) px-4 py-2 text-sm text-(--surface) shadow">
+            <div role="status" className="toast-in fixed left-1/2 top-16 z-30 -translate-x-1/2 rounded-lg bg-(--ink) px-4 py-2 text-sm text-(--surface) shadow">
               {message}
             </div>
           ) : null}
           {tab === "shop" ? (
             <>
+              <section className="hero mb-5 overflow-hidden rounded-2xl p-6 text-white md:p-8" aria-label="Featured">
+                <div className="hero-in text-xs font-semibold uppercase tracking-widest opacity-80">Demo marketplace</div>
+                <h1 className="hero-in mt-1 text-2xl font-bold md:text-3xl" style={{ animationDelay: "80ms" }}>Find something you will actually use</h1>
+                <p className="hero-in mt-2 max-w-xl text-sm opacity-90" style={{ animationDelay: "160ms" }}>
+                  {products ? `${products.length} sample products` : "Loading"} across {categories.length} categories. Browse, compare options and fill a cart. Checkout is a demo, no payment is taken.
+                </p>
+                <div className="hero-in mt-4 flex flex-wrap gap-2" style={{ animationDelay: "240ms" }}>
+                  {categories.slice(0, 8).map((id) => (
+                    <button key={id} onClick={() => setCategory(id)} className={`pill ${category === id ? "pill-on" : ""}`}>{id.replace(/_/g, " ")}</button>
+                  ))}
+                  {category !== "all" ? <button onClick={() => setCategory("all")} className="pill">Clear</button> : null}
+                </div>
+              </section>
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <input
                   value={query}
@@ -247,8 +260,8 @@ export default function ShopPage() {
               {failed ? <p className="text-sm">Couldn&apos;t reach the store API.</p> : null}
               {!products && !failed ? <p className="text-sm text-(--ink-soft)">Loading the catalog…</p> : null}
               <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
-                {shown.map((p) => (
-                  <article key={p.product_id} className="flex flex-col overflow-hidden rounded-xl border bg-white">
+                {shown.map((p, idx) => (
+                  <article key={p.product_id} style={{ animationDelay: `${Math.min(idx, 16) * 35}ms` }} className="tile-in lift flex flex-col overflow-hidden rounded-xl border bg-white">
                     <button onClick={() => view(p.product_id)} className="text-left" aria-label={`Details for ${p.title}`}>
                       <ShopImage product={p} className="h-36 w-full" />
                       <div className="p-3 pb-1">
@@ -281,12 +294,16 @@ export default function ShopPage() {
             <section aria-label="Orders">
               <h1 className="mb-3 text-xl font-bold">Sample orders (demo data)</h1>
               {!orders ? <p className="text-sm text-(--ink-soft)">Loading…</p> : null}
-              {orders?.map((order) => (
-                <div key={order.order_id} className="mb-3 rounded-xl border bg-white p-4">
+              {orders?.map((order, oi) => (
+                <div key={order.order_id} style={{ animationDelay: `${oi * 70}ms` }} className="tile-in mb-3 rounded-xl border bg-white p-4">
                   <div className="flex justify-between text-sm">
                     <b>{order.order_id}</b>
                     <span className="rounded-full bg-(--well) px-2 py-0.5 text-xs capitalize">{order.status}</span>
                   </div>
+                  <div className="rail mt-3" aria-label={`Progress: ${order.status}`}>
+                    <div className="rail-fill" style={{ width: `${({ processing: 25, shipped: 66, out_for_delivery: 85, delivered: 100 } as Record<string, number>)[order.status] ?? 40}%` }} />
+                  </div>
+                  <div className="mt-1 flex justify-between text-[10px] text-(--ink-soft)"><span>Ordered</span><span>Packed</span><span>Shipped</span><span>Delivered</span></div>
                   <ul className="mt-2 text-[13px] text-(--ink-2)">
                     {(order.items ?? []).map((line, i) => (
                       <li key={i}>
@@ -303,15 +320,15 @@ export default function ShopPage() {
         <div className="hidden w-[340px] shrink-0 border-l border-(--well) md:block">{cartPanel}</div>
       </div>
       {cartOpen ? (
-        <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setCartOpen(false)}>
-          <div className="absolute right-0 top-0 h-full w-[88%] max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="fade-in fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setCartOpen(false)}>
+          <div className="drawer-in absolute right-0 top-0 h-full w-[88%] max-w-sm" onClick={(e) => e.stopPropagation()}>
             {cartPanel}
           </div>
         </div>
       ) : null}
       {open ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setOpen(null)}>
-          <div role="dialog" aria-label={open.title} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
+        <div className="fade-in fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setOpen(null)}>
+          <div role="dialog" aria-label={open.title} className="dialog-in max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
             <ShopImage product={open} className="h-52 w-full" />
             <div className="p-5">
               <div className="text-xs uppercase text-(--ink-soft)">{open.brand}</div>
