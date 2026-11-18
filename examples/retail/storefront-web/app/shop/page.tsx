@@ -35,16 +35,33 @@ function ShopImage({ product, className = "" }: { product: Product; className?: 
     return <img src={product.image_url} alt={product.title} className={`object-cover ${className}`} />;
   }
   const initials = (product.brand ?? product.title).replace(/^ACME\s+/i, "").slice(0, 2).toUpperCase();
+  const glyph = CATEGORY_GLYPH[product.category ?? ""] ?? CATEGORY_GLYPH.default;
   return (
-    <div className={`flex flex-col items-center justify-center gap-1 ${productTileClass(product.product_id)} ${className}`} aria-hidden>
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
-        <path d="M6 8h12l-1 12H7L6 8z" />
-        <path d="M9 8V6a3 3 0 016 0v2" />
+    <div className={`art relative flex items-center justify-center overflow-hidden ${productTileClass(product.product_id)} ${className}`} aria-hidden>
+      <span className="blob blob-a" />
+      <span className="blob blob-b" />
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="art-glyph relative h-[46%] max-h-24 opacity-70">
+        {glyph.map((d, i) => <path key={i} d={d} />)}
       </svg>
-      <span className="text-xs font-semibold tracking-widest opacity-60">{initials}</span>
+      <span className="absolute bottom-2 right-3 text-[10px] font-semibold tracking-widest opacity-50">{initials}</span>
     </div>
   );
 }
+
+const CATEGORY_GLYPH: Record<string, string[]> = {
+  "beauty-personal-care": ["M24 6l3 9 9 3-9 3-3 9-3-9-9-3 9-3z", "M37 30l1.5 4 4 1.5-4 1.5L37 41l-1.5-4-4-1.5 4-1.5z"],
+  grocery: ["M8 16h32l-3 22H11L8 16z", "M16 16a8 8 0 0116 0", "M20 26v6M28 26v6"],
+  "kids-room": ["M10 38V20l14-12 14 12v18z", "M20 38V28h8v10"],
+  "home-kitchen": ["M10 22h28v12a6 6 0 01-6 6H16a6 6 0 01-6-6V22z", "M38 25h4v6h-4", "M18 10c0 3 3 3 3 6M26 10c0 3 3 3 3 6"],
+  "office-electronics": ["M8 12h32v20H8z", "M18 40h12M24 32v8"],
+  "outdoor-camping": ["M6 38L24 10l18 28z", "M24 38V26l-6 12M24 26l6 12"],
+  fitness: ["M6 20v8M12 16v16M36 16v16M42 20v8M12 24h24"],
+  "toys-games": ["M24 8l4 8h9l-7 6 3 9-9-5-9 5 3-9-7-6h9z"],
+  "pet-supplies": ["M14 22a4 4 0 100-8 4 4 0 000 8zM34 22a4 4 0 100-8 4 4 0 000 8zM24 18a4 4 0 100-8 4 4 0 000 8z", "M12 36c0-7 5-10 12-10s12 3 12 10c0 4-4 4-12 4s-12 0-12-4z"],
+  travel: ["M6 30l36-14-8 22-10-8-8 6 2-10z"],
+  "furniture-bedroom": ["M6 34V16M42 34V22H6", "M6 30h36M12 22v-5h10v5"],
+  default: ["M6 8h12l-1 12H7L6 8z", "M9 8V6a3 3 0 016 0v2"],
+};
 
 const CATEGORY_LABEL = (id: string) =>
   id
@@ -66,6 +83,20 @@ export default function ShopPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [checkout, setCheckout] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [cmp, setCmp] = useState<string[]>([]);
+  const [cmpOpen, setCmpOpen] = useState(false);
+  const [sort, setSort] = useState("featured");
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setCmpOpen(false);
+      setOpen(null);
+      setCartOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const toggleCmp = (id: string) => setCmp((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? c : [...c, id]));
 
   useEffect(() => {
     void api.get<{ products: Product[] }>("/products", { limit: "100" }).then((data) => {
@@ -92,12 +123,17 @@ export default function ShopPage() {
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (products ?? []).filter(
+    const out = (products ?? []).filter(
       (p) =>
         (category === "all" || p.category === category) &&
         (!q || `${p.title} ${p.brand ?? ""} ${p.short_description ?? ""}`.toLowerCase().includes(q)),
     );
-  }, [products, category, query]);
+    if (sort === "low") out.sort((a, b) => a.price - b.price);
+    if (sort === "high") out.sort((a, b) => b.price - a.price);
+    if (sort === "rating") out.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    return out;
+  }, [products, category, query, sort]);
+  const featured = useMemo(() => (products ?? []).filter((p) => p.in_stock !== false).sort((a, b) => (b.rating ?? 0) * Math.log10(2 + (b.review_count ?? 0)) - (a.rating ?? 0) * Math.log10(2 + (a.review_count ?? 0))).slice(0, 8), [products]);
 
   const flash = useCallback((text: string) => {
     setMessage(text);
@@ -239,6 +275,22 @@ export default function ShopPage() {
                   {category !== "all" ? <button onClick={() => setCategory("all")} className="pill">Clear</button> : null}
                 </div>
               </section>
+              {category === "all" && !query && featured.length ? (
+                <section aria-label="Top rated" className="mb-5">
+                  <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-(--ink-soft)">Top rated (sample ratings)</h2>
+                  <div className="rail-scroll flex snap-x gap-3 overflow-x-auto pb-2">
+                    {featured.map((p, i) => (
+                      <button key={p.product_id} onClick={() => view(p.product_id)} style={{ animationDelay: `${i * 60}ms` }} className="tile-in lift w-44 shrink-0 snap-start overflow-hidden rounded-xl border bg-white text-left">
+                        <ShopImage product={p} className="h-28 w-full" />
+                        <div className="p-2.5">
+                          <div className="line-clamp-2 text-[12.5px] font-medium">{p.title}</div>
+                          <div className="mt-1 text-sm font-bold">{formatMoney(p.price, p.currency)}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 <input
                   value={query}
@@ -255,6 +307,12 @@ export default function ShopPage() {
                     </option>
                   ))}
                 </select>
+                <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort" className="rounded-lg border bg-white px-3 py-2 text-sm">
+                  <option value="featured">Featured</option>
+                  <option value="low">Price: low to high</option>
+                  <option value="high">Price: high to low</option>
+                  <option value="rating">Rating</option>
+                </select>
                 <span className="text-xs text-(--ink-soft)">{products ? `${shown.length} products` : ""}</span>
               </div>
               {failed ? <p className="text-sm">Couldn&apos;t reach the store API.</p> : null}
@@ -263,12 +321,23 @@ export default function ShopPage() {
                 {shown.map((p, idx) => (
                   <article key={p.product_id} style={{ animationDelay: `${Math.min(idx, 16) * 35}ms` }} className="tile-in lift flex flex-col overflow-hidden rounded-xl border bg-white">
                     <button onClick={() => view(p.product_id)} className="text-left" aria-label={`Details for ${p.title}`}>
-                      <ShopImage product={p} className="h-36 w-full" />
+                      <div className="relative">
+                        <ShopImage product={p} className="h-36 w-full" />
+                        <div className="absolute left-2 top-2 flex gap-1">
+                          {(p.labels ?? []).filter((l) => l !== "bestseller" || (p.labels ?? []).length === 1).slice(0, 2).map((l) => (
+                            <span key={l} className={`badge badge-${l}`}>{l.replace("-", " ")}</span>
+                          ))}
+                        </div>
+                      </div>
                       <div className="p-3 pb-1">
                         <div className="text-[11px] uppercase tracking-wide text-(--ink-soft)">{p.brand}</div>
                         <ProductTitle title={p.title} className="line-clamp-2 text-[13.5px] font-medium" />
                       </div>
                     </button>
+                    <label className="flex cursor-pointer items-center gap-1.5 px-3 pb-1 text-[11px] text-(--ink-soft)">
+                      <input type="checkbox" checked={cmp.includes(p.product_id)} onChange={() => toggleCmp(p.product_id)} disabled={!cmp.includes(p.product_id) && cmp.length >= 3} />
+                      Compare
+                    </label>
                     <div className="mt-auto flex items-center justify-between p-3 pt-1">
                       <div>
                         <div className="text-[15px] font-bold">{formatMoney(p.price, p.currency)}</div>
@@ -319,6 +388,39 @@ export default function ShopPage() {
         </main>
         <div className="hidden w-[340px] shrink-0 border-l border-(--well) md:block">{cartPanel}</div>
       </div>
+      {cmp.length > 0 ? (
+        <div className="tray-in fixed bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-(--ink) px-4 py-2.5 text-sm text-(--surface) shadow-xl">
+          <span>{cmp.length} to compare</span>
+          <button disabled={cmp.length < 2} onClick={() => setCmpOpen(true)} className="rounded-lg bg-white px-3 py-1 font-semibold text-(--ink) disabled:opacity-40">Compare</button>
+          <button onClick={() => setCmp([])} className="opacity-70 underline">Clear</button>
+        </div>
+      ) : null}
+      {cmpOpen ? (() => {
+        const items = cmp.map((id) => (products ?? []).find((p) => p.product_id === id)).filter(Boolean) as Product[];
+        const allKeys = [...new Set(items.flatMap((p) => Object.keys(p.attributes ?? {})))];
+        const shared = allKeys.filter((k) => items.filter((p) => p.attributes?.[k]).length >= 2);
+        const keys = shared.length ? shared : allKeys;
+        const best = Math.min(...items.map((p) => p.price));
+        return (
+          <div className="fade-in fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setCmpOpen(false)}>
+            <div role="dialog" aria-label="Compare products" className="dialog-in max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-5" onClick={(e) => e.stopPropagation()}>
+              <div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold">Compare</h2><button onClick={() => setCmpOpen(false)} className="text-sm underline">Close</button></div>
+              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+                {items.map((p, i) => (
+                  <div key={p.product_id} style={{ animationDelay: `${i * 90}ms` }} className="tile-in rounded-xl border p-3">
+                    <ShopImage product={p} className="mb-2 h-24 w-full rounded-lg" />
+                    <div className="line-clamp-2 text-[13px] font-semibold">{p.title}</div>
+                    <div className={`mt-1 text-lg font-bold ${p.price === best ? "text-(--ok)" : ""}`}>{formatMoney(p.price, p.currency)}{p.price === best ? " · lowest" : ""}</div>
+                    <div className="text-xs text-(--ink-soft)">★ {p.rating ?? "n/a"} sample</div>
+                    <dl className="mt-2 text-xs">{keys.map((k) => (<div key={k} className="flex justify-between gap-2 border-t py-1"><dt className="capitalize text-(--ink-soft)">{k.replace(/_/g, " ")}</dt><dd>{p.attributes?.[k] ?? "-"}</dd></div>))}</dl>
+                    <button onClick={() => add(p.product_id)} disabled={p.in_stock === false} className="mt-2 w-full rounded-lg bg-(--ink) px-3 py-1.5 text-xs font-semibold text-(--surface) disabled:opacity-40">{p.in_stock === false ? "Out of stock" : "Add"}</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })() : null}
       {cartOpen ? (
         <div className="fade-in fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setCartOpen(false)}>
           <div className="drawer-in absolute right-0 top-0 h-full w-[88%] max-w-sm" onClick={(e) => e.stopPropagation()}>

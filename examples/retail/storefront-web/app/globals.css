@@ -125,3 +125,18 @@ body {
   .lift, .pill { transition: none; }
   .lift:hover { transform: none; }
 }
+
+@keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(10px,-8px) scale(1.12); } }
+@keyframes tray { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.tray-in { animation: tray 260ms cubic-bezier(.2,.7,.2,1) both; }
+.art .blob { position: absolute; border-radius: 999px; background: currentColor; opacity: .12; filter: blur(2px); animation: float 7s ease-in-out infinite; }
+.art .blob-a { width: 70%; aspect-ratio: 1; left: -15%; top: -30%; }
+.art .blob-b { width: 50%; aspect-ratio: 1; right: -10%; bottom: -25%; animation-delay: -3s; }
+.art-glyph { transition: transform 300ms cubic-bezier(.2,.7,.2,1); }
+article:hover .art-glyph, button:hover .art-glyph { transform: scale(1.12) rotate(-4deg); }
+.badge { border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: #fff; color: var(--ink); box-shadow: var(--shadow-sm); }
+.badge-sale { background: var(--danger); color: #fff; }
+.badge-new { background: var(--info); color: #fff; }
+.badge-eco-friendly { background: var(--ok); color: #fff; }
+.rail-scroll { scrollbar-width: thin; }
+@media (prefers-reduced-motion: reduce) { .tray-in, .art .blob { animation: none !important; } .art-glyph { transition: none; } article:hover .art-glyph, button:hover .art-glyph { transform: none; } }
