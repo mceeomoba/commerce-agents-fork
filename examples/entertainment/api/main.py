@@ -23,9 +23,9 @@ belongs to that user (403 otherwise). A waitlist join is provenance-gated like a
 from __future__ import annotations
 
 from fastapi import HTTPException
-from pydantic import BaseModel, Field
 
 from commerce_common.memory import InMemoryMemoryStore
+from commerce_common.pyd import BaseModel, Field
 from demo_common import (
     REPO_ROOT,
     CartAddRequest,

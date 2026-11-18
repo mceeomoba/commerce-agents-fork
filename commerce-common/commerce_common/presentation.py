@@ -12,7 +12,7 @@ from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from commerce_common.pyd import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .fencing import sanitize_suggestion_chips
 from .streaming import AgentEvent, ToolOutcome

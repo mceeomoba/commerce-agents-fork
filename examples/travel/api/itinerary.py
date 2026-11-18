@@ -12,9 +12,8 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from commerce_common.presentation import EnrichmentContext, PresentationExtension
+from commerce_common.pyd import BaseModel, Field
 from shopping_agent import ShoppingSessionState
 
 from .mock_travel import cancellation_deadline

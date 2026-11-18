@@ -11,11 +11,10 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from commerce_common.pyd import BaseModel, ConfigDict, Field
 
 from .fencing import MAX_FENCED_CHARS
 from .llm import default_model
-
 
 ThinkingEffort = Literal["low", "medium", "high", "xhigh", "max"]
 

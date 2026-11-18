@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from pydantic import ValidationError
 
 from commerce_common.config import BaseAgentConfig
+from commerce_common.pyd import ValidationError
 
 
 class RoleConfig(BaseAgentConfig):

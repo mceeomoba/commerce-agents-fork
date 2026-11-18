@@ -22,9 +22,8 @@ from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 from typing import Any, cast
 
-from commerce_common.llm import AsyncLLMClient
-
 from commerce_common.grounding import first_forced_tool
+from commerce_common.llm import AsyncLLMClient
 from commerce_common.memory import MemoryRuntime, MemoryStore, MemoryWriteFilter
 from commerce_common.presentation import (
     PresentationComponent,

@@ -4,7 +4,6 @@
 import logging
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from commerce_common.config import BaseAgentConfig
 from commerce_common.execution import (
@@ -16,6 +15,7 @@ from commerce_common.execution import (
 )
 from commerce_common.fencing import Fence
 from commerce_common.memory import MemoryRuntime
+from commerce_common.pyd import BaseModel, ValidationError
 from commerce_common.skills import SkillRegistry
 from commerce_common.streaming import ToolOutcome
 

@@ -17,7 +17,6 @@ import os
 import sys
 from pathlib import Path
 
-
 from commerce_common.execution import contracts_by_name
 from commerce_common.mcp_lite import Context, MiniMCP
 from commerce_common.mcp_server import ConnectionExecutors, enforce_local_only_bind, registrar, run

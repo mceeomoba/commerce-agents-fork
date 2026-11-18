@@ -10,9 +10,9 @@ import json
 from typing import Any
 
 import pytest
-from pydantic import BaseModel
 
 from commerce_common.delegation import DelegateExtension, DelegationContext
+from commerce_common.pyd import BaseModel
 from commerce_common.testing import FakeCreateClient, create_response, text_block, tool_use_block
 from commerce_common.turn import usage_totals
 from merchant_agent import (

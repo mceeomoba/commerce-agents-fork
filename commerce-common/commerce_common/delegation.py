@@ -12,7 +12,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel
+from commerce_common.pyd import BaseModel
 
 from .streaming import AgentEvent
 

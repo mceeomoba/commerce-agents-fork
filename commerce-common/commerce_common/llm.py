@@ -115,9 +115,7 @@ def to_wire_messages(system: Any, messages: list[dict[str, Any]]) -> list[dict[s
                 body = _tool_result_text(block.get("content"))
                 if block.get("is_error"):
                     body = f"Error: {body}"
-                wire.append(
-                    {"role": "tool", "tool_call_id": block["tool_use_id"], "content": body}
-                )
+                wire.append({"role": "tool", "tool_call_id": block["tool_use_id"], "content": body})
         text = _text_of([b for b in content if isinstance(b, dict) and b.get("type") == "text"])
         if text:
             wire.append({"role": "user", "content": text})
@@ -184,7 +182,7 @@ class MessageStream:
     """``async with client.messages.stream(**request) as stream`` — iterate for events in the
     content-block shape, then ``await stream.get_final_message()``."""
 
-    def __init__(self, client: "AsyncLLMClient", request: dict[str, Any]) -> None:
+    def __init__(self, client: AsyncLLMClient, request: dict[str, Any]) -> None:
         self._client = client
         self._body = to_wire_request(request) | {
             "stream": True,
@@ -192,7 +190,7 @@ class MessageStream:
         }
         self._final: _Obj | None = None
 
-    async def __aenter__(self) -> "MessageStream":
+    async def __aenter__(self) -> MessageStream:
         return self
 
     async def __aexit__(self, *exc: object) -> None:
@@ -209,6 +207,7 @@ class MessageStream:
         tool_slots: dict[int, int] = {}  # wire tool index -> block index
         tool_bufs: dict[int, str] = {}
         stop = "end_turn"
+        self._client.require_credentials()
         async with self._client._http.stream(
             "POST", "/chat/completions", json=self._body, headers=self._client._headers
         ) as resp:
@@ -282,7 +281,9 @@ class MessageStream:
             yield _Obj(type="content_block_stop", index=idx)
         if tool_bufs and stop == "end_turn":
             stop = "tool_use"
-        self._final = _Obj(type="message", role="assistant", content=blocks, stop_reason=stop, usage=usage)
+        self._final = _Obj(
+            type="message", role="assistant", content=blocks, stop_reason=stop, usage=usage
+        )
         yield _Obj(type="message_delta", usage=usage)
         yield _Obj(type="message_stop")
 
@@ -295,7 +296,7 @@ class MessageStream:
 
 
 class _Messages:
-    def __init__(self, client: "AsyncLLMClient") -> None:
+    def __init__(self, client: AsyncLLMClient) -> None:
         self._client = client
 
     def stream(self, **request: Any) -> MessageStream:
@@ -303,6 +304,7 @@ class _Messages:
 
     async def create(self, **request: Any) -> _Obj:
         body = to_wire_request(request)
+        self._client.require_credentials()
         resp = await self._client._http.post(
             "/chat/completions", json=body, headers=self._client._headers
         )
@@ -356,6 +358,13 @@ class AsyncLLMClient:
         self._headers = {"Authorization": f"Bearer {key}"} if key else {}
         self._http = httpx.AsyncClient(base_url=self.base_url, timeout=timeout)
         self.messages = _Messages(self)
+
+    def require_credentials(self) -> None:
+        """Refuse locally, before any network call, when the default hosted endpoint is in
+        use with no key: nothing is sent anywhere until a model is configured. A custom
+        ``LLM_BASE_URL`` (a local server) may legitimately need no key."""
+        if not self.api_key and self.base_url == DEFAULT_BASE_URL.rstrip("/"):
+            raise AuthenticationError("no LLM_API_KEY is configured; AI chat is turned off")
 
     def _raise(self, status: int, detail: str) -> None:
         if status in (401, 403):

@@ -28,9 +28,19 @@ def test_http_flow_requires_token_and_session():
     r = c.post("/mcp", json=_rpc("initialize", protocolVersion="2025-06-18"), headers=h)
     assert r.status_code == 200 and r.json()["result"]["serverInfo"]["name"] == "t"
     h["Mcp-Session-Id"] = r.headers["mcp-session-id"]
-    assert c.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}, headers=h).status_code == 202
-    assert c.post("/mcp", json=_rpc("tools/list", 2), headers=h).json()["result"]["tools"][0]["name"] == "echo"
-    ok = c.post("/mcp", json=_rpc("tools/call", 3, name="echo", arguments={"text": "hi"}), headers=h).json()
+    assert (
+        c.post(
+            "/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}, headers=h
+        ).status_code
+        == 202
+    )
+    assert (
+        c.post("/mcp", json=_rpc("tools/list", 2), headers=h).json()["result"]["tools"][0]["name"]
+        == "echo"
+    )
+    ok = c.post(
+        "/mcp", json=_rpc("tools/call", 3, name="echo", arguments={"text": "hi"}), headers=h
+    ).json()
     assert ok["result"]["content"][0]["text"] == "hi"
     bad = c.post("/mcp", json=_rpc("tools/call", 4, name="echo", arguments={}), headers=h).json()
     assert bad["result"]["isError"]

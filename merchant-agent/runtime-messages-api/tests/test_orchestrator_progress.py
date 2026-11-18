@@ -8,9 +8,8 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from pydantic import BaseModel
-
 from commerce_common.delegation import DelegateExtension
+from commerce_common.pyd import BaseModel
 from commerce_common.testing import FakeClient, text_message, tool_calls_message, tool_use_message
 from merchant_agent_runtime import MerchantAgent
 

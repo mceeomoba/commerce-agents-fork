@@ -18,12 +18,11 @@ import logging
 import time
 from typing import Any, cast
 
-from commerce_common.llm import AsyncLLMClient
-from pydantic import BaseModel, ValidationError
-
 from commerce_common.delegation import DelegateExtension, DelegationContext
 from commerce_common.execution import without_status
+from commerce_common.llm import AsyncLLMClient
 from commerce_common.prompt_assembly import with_tool_cache_control
+from commerce_common.pyd import BaseModel, ValidationError
 from commerce_common.skills import SkillRegistry
 from commerce_common.streaming import AgentEvent
 from commerce_common.turn import accumulate_usage, log_model_call

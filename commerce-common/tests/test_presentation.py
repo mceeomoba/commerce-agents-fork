@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from pydantic import BaseModel, ValidationError
 
 from commerce_common.presentation import (
     EnrichmentContext,
@@ -14,6 +13,7 @@ from commerce_common.presentation import (
     partial_signature,
     run_presentation,
 )
+from commerce_common.pyd import BaseModel, ValidationError
 
 
 class _Payload(BaseModel):

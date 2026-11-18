@@ -29,8 +29,14 @@ def test_request_translation():
             "tool_choice": {"type": "tool", "name": "t"},
             "messages": [
                 {"role": "user", "content": "hi"},
-                {"role": "assistant", "content": [{"type": "tool_use", "id": "1", "name": "t", "input": {"a": 1}}]},
-                {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "1", "content": "ok"}]},
+                {
+                    "role": "assistant",
+                    "content": [{"type": "tool_use", "id": "1", "name": "t", "input": {"a": 1}}],
+                },
+                {
+                    "role": "user",
+                    "content": [{"type": "tool_result", "tool_use_id": "1", "content": "ok"}],
+                },
             ],
         }
     )
@@ -48,8 +54,31 @@ async def test_stream_text_and_tool_call():
         return _sse(
             {"choices": [{"delta": {"content": "Hel"}}]},
             {"choices": [{"delta": {"content": "lo"}}]},
-            {"choices": [{"delta": {"tool_calls": [{"index": 0, "id": "c1", "function": {"name": "search", "arguments": '{"q":'}}]}}]},
-            {"choices": [{"delta": {"tool_calls": [{"index": 0, "function": {"arguments": '"tent"}'}}]}, "finish_reason": "tool_calls"}]},
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "c1",
+                                    "function": {"name": "search", "arguments": '{"q":'},
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "choices": [
+                    {
+                        "delta": {
+                            "tool_calls": [{"index": 0, "function": {"arguments": '"tent"}'}}]
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ]
+            },
             {"choices": [], "usage": {"prompt_tokens": 5, "completion_tokens": 3}},
         )
 
@@ -66,7 +95,15 @@ async def test_stream_text_and_tool_call():
 
 
 async def test_create_and_auth_error():
-    client = _client(lambda r: httpx.Response(200, json={"choices": [{"message": {"content": "hi"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}))
+    client = _client(
+        lambda r: httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": "hi"}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+            },
+        )
+    )
     r = await client.messages.create(model="m", messages=[{"role": "user", "content": "x"}])
     assert r.content[0].text == "hi"
     bad = _client(lambda r: httpx.Response(401, text="no"))

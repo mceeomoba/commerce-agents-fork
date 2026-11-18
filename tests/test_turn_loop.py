@@ -17,8 +17,8 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pytest
-from pydantic import ValidationError
 
+from commerce_common.pyd import ValidationError
 from commerce_common.testing import (
     FakeClient,
     text_block,

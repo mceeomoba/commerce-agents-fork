@@ -500,9 +500,8 @@ async def test_inline_preferences_carry_the_account_context_when_the_backend_has
 async def test_presentation_extension_validates_enriches_and_emits_ui(
     backend, config, skills, session, state
 ):
-    from pydantic import BaseModel, Field
-
     from commerce_common.presentation import EnrichmentContext, PresentationExtension
+    from commerce_common.pyd import BaseModel, Field
 
     class ItineraryPayload(BaseModel):
         title: str = Field(max_length=80)
@@ -550,9 +549,8 @@ async def test_presentation_extension_validates_enriches_and_emits_ui(
 async def test_extension_without_enrich_passes_validated_payload_through(
     backend, config, skills, session, state
 ):
-    from pydantic import BaseModel
-
     from commerce_common.presentation import PresentationExtension
+    from commerce_common.pyd import BaseModel
 
     class BannerPayload(BaseModel):
         message: str

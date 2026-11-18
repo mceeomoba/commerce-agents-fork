@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright 2026 Anthropic PBC
+# SPDX-License-Identifier: Apache-2.0
+#
+# Single-process demo host: the retail API plus the prebuilt storefront on one port, using
+# libraries installed into ./libs (pip install --target libs -r requirements-android.txt).
+# AI chat stays off unless LLM_API_KEY is set. Checkout is a demo; nothing is charged.
+set -e
+cd "$(dirname "$0")/.."
+ROOT="$(pwd)"
+export PYTHONPATH="$ROOT/libs:$ROOT/commerce-common:$ROOT/shopping-agent/core:$ROOT/shopping-agent/runtime-messages-api:$ROOT/merchant-agent/core:$ROOT/merchant-agent/runtime-messages-api:$ROOT/examples"
+if [ ! -f deploy/site/index.html ]; then
+  mkdir -p deploy/site
+  unzip -q -o deploy/storefront-export.zip -d deploy/site
+fi
+export STOREFRONT_STATIC_DIR="$ROOT/deploy/site"
+export STOREFRONT_DIRECT_ADD="${STOREFRONT_DIRECT_ADD:-1}"
+export DEMO_ALLOWED_HOSTS="${DEMO_ALLOWED_HOSTS:-*.agt.novamail.store}"
+exec python3 -m uvicorn retail.api.main:app --host 0.0.0.0 --port "${PORT:-8787}"

@@ -132,6 +132,26 @@ STOREFRONT_STATIC_DIR=$PWD/examples/retail/storefront-web/out \
 
 Run one worker: sessions and carts live in process memory. Needs Python 3.11+ with `fastapi`, `uvicorn`, `pydantic` v2 and the other packages in `requirements.txt`.
 
+## Hosts without Rust (Android, pydantic 1)
+
+`pydantic-core` has no wheel on some hosts, so pydantic 2 cannot install there. The code
+imports its pydantic names from `commerce_common.pyd`, which re-exports pydantic 2 unchanged
+and, on pydantic 1.10 (pure Python), supplies the v2 surface the code uses. Install the pure
+set with `pip install --target libs -r requirements-android.txt` and start the single-process
+host with `scripts/run_android.sh` (retail API plus the prebuilt storefront in
+`deploy/storefront-export.zip`, one port, `PORT` defaults to 8787).
+
+Tested locally only, in two separate runs of the fork suite (974 tests, 1 skipped each):
+pydantic 2 with FastAPI 0.141, and pydantic 1.10.27 (pure-Python wheel) with FastAPI 0.115.14.
+That is not the upstream suite, and none of it ran against a real model or on a phone.
+
+With no `LLM_API_KEY` the AI assistant is off: chat refuses locally and sends nothing out.
+The page at `/shop/` works without it (browse, search, product detail with options, cart with
+quantities, sample orders). `STOREFRONT_DIRECT_ADD=1` (set by `run_android.sh`) lets the cart
+button add a product the shopper is looking at; the quantity cap and the other gates still
+apply. Checkout is a demo: it shows a notice, takes no payment and places no order. The demo
+has one fixed shopper and no sign-in.
+
 ## Deploying
 
 Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`, or pass any object with `messages.stream` / `messages.create` as `client=`. See [`docs/deployment.md`](docs/deployment.md).

@@ -21,6 +21,7 @@ dependency, and mounts a direct add-to-cart button through ``StorefrontHost.dire
 # Route parameters below are annotated with dependencies built at call time, so this
 # module evaluates its annotations eagerly (no ``from __future__ import annotations``).
 
+import os
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import datetime
 from pathlib import Path
@@ -28,9 +29,9 @@ from typing import Any, cast
 
 from fastapi import Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 
 from commerce_common.memory import MemoryStore, MemoryWriteRejected
+from commerce_common.pyd import BaseModel, Field
 from shopping_agent import PageContext, ProductDetails, ShoppingSessionContext, ShoppingSessionState
 from shopping_agent.fencing import STOREFRONT_FENCE
 from shopping_agent.gates import OPTIONS_GATE, PROVENANCE_GATE
@@ -127,7 +128,18 @@ class StorefrontHost:
     ) -> dict[str, Any]:
         """A UI button's add, run through the same executor as the agent's ``add_to_cart``
         so provenance and quantity caps hold. ``note`` (``{title}``, ``{product_id}``,
-        ``{quantity}``) is what the model is told on the next turn."""
+        ``{quantity}``) is what the model is told on the next turn.
+
+        With ``STOREFRONT_DIRECT_ADD=1`` (a deployment that runs with chat turned off), a
+        product the shopper is looking at on the catalog page counts as seen, so the button
+        can add it without the agent having surfaced it first. Every other gate, the
+        quantity caps included, still runs."""
+        if os.environ.get("STOREFRONT_DIRECT_ADD") == "1":
+            known = record.state.seen_products
+            if request.product_id not in known:
+                listed = self.backend.product(request.product_id)
+                if listed is not None:
+                    known[listed.product_id] = listed
         executor = self.agent.executor_class(
             backend=self.backend,
             config=self.agent.config,

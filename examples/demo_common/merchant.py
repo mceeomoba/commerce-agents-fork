@@ -28,9 +28,9 @@ from typing import Any, Protocol, cast
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
 
 from commerce_common.memory import MemoryStore
+from commerce_common.pyd import BaseModel, Field
 from merchant_agent import (
     BusinessSnapshot,
     ChangeLedger,

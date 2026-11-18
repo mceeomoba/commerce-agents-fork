@@ -14,9 +14,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
-from pydantic import BaseModel
 
 from commerce_common.memory import InMemoryMemoryStore
+from commerce_common.pyd import BaseModel
 from commerce_common.types import MemoryFact
 from demo_common import (
     SESSION_HEADER,
@@ -117,7 +117,7 @@ def _declared_fields(route: Any) -> set[str]:
     dependant = route.dependant
     declared = {param.name for param in (*dependant.query_params, *dependant.path_params)}
     for body in dependant.body_params:
-        annotation = body.field_info.annotation
+        annotation = getattr(body.field_info, "annotation", None) or body.type_
         if isinstance(annotation, type) and issubclass(annotation, BaseModel):
             declared |= set(annotation.model_fields)
         else:

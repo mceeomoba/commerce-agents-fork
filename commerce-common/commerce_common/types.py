@@ -10,7 +10,7 @@ from enum import StrEnum
 from typing import TypeVar
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, Field, field_validator
+from commerce_common.pyd import BaseModel, Field, field_validator
 
 # Records a provenance map keeps: the newest; a dropped id needs a fresh read.
 PROVENANCE_CAP = 200

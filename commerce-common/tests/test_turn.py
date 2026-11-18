@@ -6,7 +6,6 @@ import logging
 from types import SimpleNamespace
 
 from commerce_common.llm import _Obj
-
 from commerce_common.streaming import AgentEvent, ToolOutcome
 from commerce_common.turn import (
     CLEARED_RESULT,

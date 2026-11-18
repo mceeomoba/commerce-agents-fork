@@ -10,11 +10,11 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from pydantic import BaseModel
 
 from commerce_common.execution import LOAD_SKILL, STATUS_FIELD, STATUS_MAX_CHARS
 from commerce_common.presentation import PresentationExtension, PresentationPayload
 from commerce_common.prompt_assembly import with_tool_cache_control
+from commerce_common.pyd import BaseModel
 from merchant_agent import enrichment as merchant_enrichment
 from merchant_agent import prompt as merchant_prompt
 from merchant_agent.memory import MERCHANT_MEMORY_EXTRACTION_PROMPT

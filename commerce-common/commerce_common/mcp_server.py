@@ -19,7 +19,6 @@ from typing import Any
 from weakref import WeakKeyDictionary
 
 from .mcp_lite import Context, MiniMCP
-
 from .streaming import ToolOutcome
 
 logger = logging.getLogger(__name__)
@@ -81,8 +80,11 @@ class BearerAuth:
                 return
             status, body = 401, b"unauthorized"
         await send(
-            {"type": "http.response.start", "status": status,
-             "headers": [(b"content-type", b"text/plain")]}
+            {
+                "type": "http.response.start",
+                "status": status,
+                "headers": [(b"content-type", b"text/plain")],
+            }
         )
         await send({"type": "http.response.body", "body": body})
 
@@ -126,9 +128,7 @@ def registrar(
     def register(name: str) -> Callable[[Any], Any]:
         if name not in contracts:
             return lambda handler: handler
-        decorate = server.tool(
-            name, overrides.get(name, str(contracts[name]["description"]))
-        )
+        decorate = server.tool(name, overrides.get(name, str(contracts[name]["description"])))
 
         def wrap(handler: Any) -> Any:
             registered = decorate(handler)

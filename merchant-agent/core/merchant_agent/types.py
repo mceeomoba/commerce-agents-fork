@@ -13,8 +13,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
-
+from commerce_common.pyd import BaseModel, Field, ValidationInfo, field_validator
 from commerce_common.types import ClockContext, remember
 
 # ---------------------------------------------------------------------------

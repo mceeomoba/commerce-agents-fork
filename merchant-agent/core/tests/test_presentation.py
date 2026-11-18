@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from pydantic import ValidationError
 
+from commerce_common.pyd import ValidationError
 from merchant_agent.enrichment import (
     reconcile_change_preview_currency,
     reconcile_change_preview_weekdays,

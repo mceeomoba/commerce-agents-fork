@@ -8,9 +8,9 @@ from __future__ import annotations
 import dataclasses
 
 import pytest
-from pydantic import BaseModel
 
 from commerce_common.delegation import DelegateExtension, DelegationContext
+from commerce_common.pyd import BaseModel
 
 
 class _Result(BaseModel):

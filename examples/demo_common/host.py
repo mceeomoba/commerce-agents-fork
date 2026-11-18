@@ -15,7 +15,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Protocol
 
-from commerce_common import llm
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,6 +22,7 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from commerce_common import llm
 from commerce_common.streaming import AgentEvent, to_sse
 from commerce_common.turn import session_tag
 from shopping_agent import Cart, Order, ProductDetails, ShoppingSessionContext
@@ -95,6 +95,22 @@ def _lifespan(on_startup: Sequence[Callable[[], Awaitable[None]]]):
     return lifespan
 
 
+class _RequireContentType:
+    """A body-carrying request with no Content-Type is read as plain text, never guessed to
+    be JSON. FastAPI 0.132+ does this itself; this keeps a cross-site "simple request"
+    (which cannot set a JSON Content-Type) out of the demo APIs on older FastAPI too."""
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] == "http" and scope["method"] in ("POST", "PUT", "PATCH"):
+            headers = scope["headers"]
+            if not any(name == b"content-type" for name, _ in headers):
+                scope = {**scope, "headers": [*headers, (b"content-type", b"text/plain")]}
+        await self.app(scope, receive, send)
+
+
 def build_app(title: str, on_startup: Sequence[Callable[[], Awaitable[None]]] = ()) -> FastAPI:
     """A FastAPI app that answers only to loopback host names (plus ``DEMO_ALLOWED_HOSTS``,
     for a deployment that puts its own authentication in front) and to any localhost
@@ -111,6 +127,7 @@ def build_app(title: str, on_startup: Sequence[Callable[[], Awaitable[None]]] = 
         for host in os.environ.get("DEMO_ALLOWED_HOSTS", "").split(",")
     ]
     app = FastAPI(title=title, version="0.1.0", lifespan=_lifespan(on_startup))
+    app.add_middleware(_RequireContentType)
     app.add_middleware(
         TrustedHostMiddleware,
         allowed_hosts=["localhost", "127.0.0.1", *(host for host in extra_hosts if host)],
@@ -169,6 +186,14 @@ def stream_turn(
                 yield to_sse(event)
         except llm.AuthenticationError:
             logger.exception("chat turn failed: API authentication")
+            if not os.environ.get("LLM_API_KEY"):
+                yield to_sse(
+                    AgentEvent.error(
+                        "AI chat is turned off on this server: no model API key is configured. "
+                        "Browsing, cart and orders work without one."
+                    )
+                )
+                return
             yield to_sse(
                 AgentEvent.error(
                     f"Model API authentication failed. Check LLM_API_KEY and LLM_BASE_URL in "

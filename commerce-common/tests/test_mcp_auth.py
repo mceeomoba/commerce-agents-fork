@@ -13,7 +13,9 @@ async def _app(scope, receive, send):
 
 
 def _client():
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=BearerAuth(_app, TOKEN)), base_url="http://t")
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=BearerAuth(_app, TOKEN)), base_url="http://t"
+    )
 
 
 async def test_requests_without_the_token_are_refused():

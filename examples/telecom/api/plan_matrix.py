@@ -9,9 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from commerce_common.presentation import EnrichmentContext, PresentationExtension
+from commerce_common.pyd import BaseModel, Field
 
 # Row labels by attribute key; an unknown key is labelled from the key itself.
 _DIMENSION_LABELS: dict[str, str] = {

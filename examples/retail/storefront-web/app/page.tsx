@@ -28,6 +28,12 @@ function Wordmark() {
 }
 
 export default function StorefrontPage() {
+  // Without an AI assistant (NEXT_PUBLIC_AI_ENABLED unset) the shopping page is the front door.
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_AI_ENABLED !== "1" && !window.location.search.includes("assistant")) {
+      window.location.replace("/shop/");
+    }
+  }, []);
   const session = useSession(api);
   const [view, setView] = useState<View>("assistant");
   const [cart, setCart] = useState<CartPayload | null>(null);

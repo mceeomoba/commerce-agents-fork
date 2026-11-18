@@ -14,9 +14,9 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, HTTPException
-from pydantic import BaseModel, Field
 
 from commerce_common.memory import MemoryStore
+from commerce_common.pyd import BaseModel, Field
 from commerce_common.types import MemoryFact
 
 

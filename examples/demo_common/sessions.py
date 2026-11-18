@@ -23,15 +23,21 @@ it and puts the storage methods at the bottom over its own store.
 from __future__ import annotations
 
 import copy
+import inspect
 import secrets
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Generic, TypeVar
 
 from fastapi import Depends, Header, HTTPException
-from pydantic import BaseModel
+
+from commerce_common.pyd import BaseModel
 
 SESSION_HEADER = "X-Session-Id"
+
+# FastAPI 0.118+ takes ``scope="function"`` (exit code runs before the response goes out); the
+# older FastAPI that pairs with pydantic 1 (0.106 to 0.117) already runs it at that point.
+_DEPENDS_SCOPE = {"scope": "function"} if "scope" in inspect.signature(Depends).parameters else {}
 
 StateT = TypeVar("StateT", bound=BaseModel)
 
@@ -182,4 +188,4 @@ def session_dependency(store: SessionStore[StateT], start_route: str) -> Any:
         except SessionConflictError as error:
             raise HTTPException(status_code=409, detail="The session changed; retry") from error
 
-    return Annotated[SessionRecord[StateT], Depends(current_session, scope="function")]
+    return Annotated[SessionRecord[StateT], Depends(current_session, **_DEPENDS_SCOPE)]

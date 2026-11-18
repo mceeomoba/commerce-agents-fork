@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
-
 from commerce_common.presentation import PresentationPayload
+from commerce_common.pyd import BaseModel, Field
 
 # The card a stage call also renders when ``stage_shows_preview`` is on.
 PREVIEW_TOOL = "present_change_preview"

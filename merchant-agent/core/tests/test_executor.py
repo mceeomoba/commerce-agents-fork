@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from pydantic import BaseModel
 
 from commerce_common.delegation import DelegateExtension
+from commerce_common.pyd import BaseModel
 from merchant_agent import InventoryAlert, MerchantSessionState, StagedChange
 from merchant_agent.executor import NOTE_MAX_CHARS, MerchantToolExecutor
 from merchant_agent.fencing import MERCHANT_FENCE

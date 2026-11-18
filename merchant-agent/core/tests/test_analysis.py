@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 
 import pytest
-from pydantic import ValidationError
 
+from commerce_common.pyd import ValidationError
 from commerce_common.skills import SkillRegistry
 from merchant_agent import (
     AnalysisFigure,

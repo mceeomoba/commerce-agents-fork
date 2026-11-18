@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import os
 
+from fastapi import HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from commerce_common.memory import InMemoryMemoryStore, JsonFileMemoryStore
+from commerce_common.pyd import BaseModel, Field
 from demo_common import (
     REPO_ROOT,
     CartAddRequest,
@@ -74,6 +76,27 @@ async def cart_add(request: CartAddRequest, record: host.CurrentSession) -> dict
         request,
         note="Customer tapped the add-to-cart button on {title} ({product_id}), quantity {quantity}.",
     )
+
+
+class CartQuantityRequest(BaseModel):
+    quantity: int = Field(ge=0, le=24)
+
+
+@app.patch("/api/cart/item/{product_id:path}")
+async def cart_set_quantity(
+    product_id: str, request: CartQuantityRequest, record: host.CurrentSession
+) -> dict:
+    """The shop page's stepper: set a line's quantity (0 removes it). Only a line already in
+    the cart can change, so this cannot add a product the add-to-cart gates did not pass."""
+    context = host.context(record)
+    cart = await backend.get_cart(context)
+    if not any(line.product_id == product_id for line in cart.items):
+        raise HTTPException(status_code=404, detail="Not in the cart")
+    if request.quantity == 0:
+        await backend.remove_from_cart(context, product_id)
+    else:
+        await backend.update_cart_item(context, product_id, request.quantity)
+    return {"ok": True, "cart": (await host.cart_payload(record))}
 
 
 # Single-process hosting: with STOREFRONT_STATIC_DIR set to the storefront's static export

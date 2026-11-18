@@ -5,9 +5,9 @@
 
 from __future__ import annotations
 
-from commerce_common.mcp_testing import create_connected_server_and_client_session
 from storefront_mcp_server import build_server
 
+from commerce_common.mcp_testing import create_connected_server_and_client_session
 from commerce_common.memory import InMemoryMemoryStore
 from commerce_common.testing import result_text
 from shopping_agent.fencing import STOREFRONT_FENCE

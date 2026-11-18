@@ -14,7 +14,7 @@ import logging
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Any, TypeVar
 
-from pydantic import BaseModel, ValidationError
+from commerce_common.pyd import BaseModel, ValidationError
 
 from .delegation import DelegateExtension, DelegationContext
 from .fencing import Fence, sanitize_label, truncate_display

@@ -19,11 +19,12 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from pydantic import TypeAdapter, ValidationError
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
+
+from commerce_common.pyd import TypeAdapter, ValidationError
 
 SUPPORTED_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 MAX_SESSIONS = 256
@@ -143,7 +144,10 @@ class MiniMCP:
             text = await tool.handler(ctx=Context(session), **kwargs)
             return {"content": [{"type": "text", "text": text}], "isError": False}
         except (ValidationError, ValueError) as err:
-            return {"content": [{"type": "text", "text": f"invalid arguments: {err}"}], "isError": True}
+            return {
+                "content": [{"type": "text", "text": f"invalid arguments: {err}"}],
+                "isError": True,
+            }
 
     # -- sessions ----------------------------------------------------------------------
 
@@ -184,14 +188,21 @@ class MiniMCP:
             if init is not None:
                 session = self.new_session()
                 headers["Mcp-Session-Id"] = session.session_id
-                out = [{"jsonrpc": "2.0", "id": init.get("id"),
-                        "result": self.initialize(init.get("params") or {})}]
+                out = [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": init.get("id"),
+                        "result": self.initialize(init.get("params") or {}),
+                    }
+                ]
             else:
                 sid = request.headers.get("mcp-session-id")
                 found = self.get_session(sid)
                 if found is None:
                     status = 404 if sid else 400
-                    return JSONResponse(_error(None, -32600, "missing or unknown session"), status_code=status)
+                    return JSONResponse(
+                        _error(None, -32600, "missing or unknown session"), status_code=status
+                    )
                 out = [r for m in batch if (r := await self.handle(found, m)) is not None]
             if not out:
                 return Response(status_code=202, headers=headers)

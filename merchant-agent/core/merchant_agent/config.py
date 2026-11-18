@@ -7,9 +7,8 @@
 
 from __future__ import annotations
 
-from pydantic import Field
-
 from commerce_common.config import BaseAgentConfig, ThinkingEffort
+from commerce_common.pyd import Field
 
 
 class MerchantAgentConfig(BaseAgentConfig):

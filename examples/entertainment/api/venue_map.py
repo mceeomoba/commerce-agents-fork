@@ -10,9 +10,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from commerce_common.presentation import EnrichmentContext, PresentationExtension
+from commerce_common.pyd import BaseModel, Field
 
 
 class VenueMapPayload(BaseModel):

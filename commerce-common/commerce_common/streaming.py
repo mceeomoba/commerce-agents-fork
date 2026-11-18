@@ -34,7 +34,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from commerce_common.pyd import BaseModel, Field
 
 EventType = Literal[
     "text_delta",
