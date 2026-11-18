@@ -18,7 +18,8 @@ once (prompt, skills, tool contracts, gates) and runs on one turn loop; four run
 Python 3.11+ and Node 22. Clone, install, add a key, run a vertical:
 
 ```bash
-git clone https://github.com/anthropics/commerce-agents.git && cd commerce-agents
+# from the extracted fork tarball (or: git clone commerce-agents-full-history.bundle commerce-agents)
+cd commerce-agents
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt       # the seven packages and their pinned dependencies
 cp .env.example .env                  # set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL

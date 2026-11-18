@@ -16,8 +16,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# commerce_common.mcp_server (the hosted-agent route).
-mcp = ["mcp>=1.2,<2"]
 # This repo's own verification loop and its runnable examples. scripts/install.sh and CI
 # install [examples] through requirements.txt and the test tools through requirements-dev.txt;
 # [dev] is the unpinned equivalent for a standalone install of this package.

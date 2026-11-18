@@ -22,9 +22,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from mcp.server.fastmcp import Context, FastMCP
 
 from commerce_common.execution import contracts_by_name
+from commerce_common.mcp_lite import Context, MiniMCP
 from commerce_common.mcp_server import ConnectionExecutors, enforce_local_only_bind, registrar, run
 from commerce_common.memory import JsonFileMemoryStore, MemoryStore, MemoryWriteFilter
 from commerce_common.skills import SkillRegistry
@@ -96,7 +96,7 @@ def build_server(
     executor_class: type[MerchantToolExecutor] = MerchantToolExecutor,
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
-) -> FastMCP:
+) -> MiniMCP:
     """The server over ``backend``. Keep ``config``'s guardrails in step with what the
     backend stages under, because apply re-checks against them. ``config`` is used as
     given: pass ``require_host_approval=False`` when the platform's ``always_ask`` is the
@@ -135,7 +135,7 @@ def build_server(
             memory=memory,
         )
     )
-    server = FastMCP(
+    server = MiniMCP(
         name="merchant-back-office", instructions=SERVER_INSTRUCTIONS, host=host, port=port
     )
     register = registrar(

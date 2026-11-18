@@ -18,7 +18,7 @@ from collections.abc import Callable, Mapping
 from typing import Any
 from weakref import WeakKeyDictionary
 
-from mcp.server.fastmcp import Context, FastMCP
+from .mcp_lite import Context, MiniMCP
 
 from .streaming import ToolOutcome
 
@@ -114,7 +114,7 @@ class ConnectionExecutors:
 
 
 def registrar(
-    server: FastMCP, contracts: Mapping[str, Mapping[str, Any]], overrides: Mapping[str, str]
+    server: MiniMCP, contracts: Mapping[str, Mapping[str, Any]], overrides: Mapping[str, str]
 ) -> Callable[[str], Callable[[Any], Any]]:
     """``register(name)`` decorates a handler as the MCP tool ``name`` under the registry's
     description (or the documented hosted-path override) and the registry's input schema,
@@ -127,14 +127,12 @@ def registrar(
         if name not in contracts:
             return lambda handler: handler
         decorate = server.tool(
-            name=name, description=overrides.get(name, str(contracts[name]["description"]))
+            name, overrides.get(name, str(contracts[name]["description"]))
         )
 
         def wrap(handler: Any) -> Any:
             registered = decorate(handler)
-            tool = server._tool_manager.get_tool(name)
-            if tool is not None:
-                tool.parameters = published_schema(contracts[name]["input_schema"])
+            server.set_schema(name, published_schema(contracts[name]["input_schema"]))
             return registered
 
         return wrap
@@ -151,21 +149,17 @@ def published_schema(input_schema: Mapping[str, Any]) -> dict[str, Any]:
     return schema
 
 
-def run(server: FastMCP, *, url: str, warning: str) -> None:
+def run(server: MiniMCP, *, url: str, warning: str) -> None:
     """Serve over streamable HTTP. ``FastMCP`` configures root logging when it is built,
     so both lines reach stderr."""
     logger.info("MCP server on %s", url)
     token = auth_token_from_env()
     if token is None:
         logger.warning("%s", warning)
-        server.run(transport="streamable-http")
-        return
     import uvicorn
 
-    logger.info("MCP_AUTH_TOKEN set: requests need the token")
-    uvicorn.run(
-        BearerAuth(server.streamable_http_app(), token),
-        host=server.settings.host,
-        port=server.settings.port,
-        log_level="info",
-    )
+    app = server.asgi_app()
+    if token is not None:
+        logger.info("MCP_AUTH_TOKEN set: requests need the token")
+        app = BearerAuth(app, token)
+    uvicorn.run(app, host=server.host, port=server.port, log_level="info")
