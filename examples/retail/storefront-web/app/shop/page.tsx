@@ -325,7 +325,7 @@ export default function ShopPage() {
                         <ShopImage product={p} className="h-36 w-full" />
                         <div className="absolute left-2 top-2 flex gap-1">
                           {(p.labels ?? []).filter((l) => l !== "bestseller" || (p.labels ?? []).length === 1).slice(0, 2).map((l) => (
-                            <span key={l} className={`badge badge-${l}`}>{l.replace("-", " ")}</span>
+                            <span key={l} title="Label from the fictional sample catalog" className={`badge badge-${l}`}>{l.replace("-", " ")}</span>
                           ))}
                         </div>
                       </div>
