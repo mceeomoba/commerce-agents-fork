@@ -21,6 +21,7 @@ portal session. A vertical's own portal reads are passed in as ``portal_reads``.
 # module evaluates its annotations eagerly (no ``from __future__ import annotations``).
 
 import inspect
+import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
@@ -302,7 +303,8 @@ def build_merchant_router(
             "role": "merchant",
             "listings": len(storefront.products),
             "skills": agent.skills.names,
-            "model": agent.config.model,
+            "ai_enabled": bool(os.environ.get("LLM_API_KEY")),
+            "model": agent.config.model if os.environ.get("LLM_API_KEY") else None,
         }
 
     return router

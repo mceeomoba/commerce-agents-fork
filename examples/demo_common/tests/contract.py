@@ -5,6 +5,7 @@
 
 import asyncio
 import inspect
+import os
 import re
 from collections.abc import Iterable
 from datetime import date, timedelta
@@ -218,7 +219,10 @@ def test_health_names_the_store_and_the_model(main, client, portal):
     storefront = client.get("/api/health").json()
     assert storefront["store"] == main.backend.store_name
     assert storefront["products"] == len(main.backend.products)
-    assert storefront["model"] == main.agent.config.model
+    assert storefront["model"] == (
+        main.agent.config.model if os.environ.get("LLM_API_KEY") else None
+    )
+    assert storefront["ai_enabled"] == bool(os.environ.get("LLM_API_KEY"))
     portal_health = portal[0].get("/api/merchant/health").json()
     assert portal_health["store"] == main.backend.store_name and portal_health["role"] == "merchant"
 

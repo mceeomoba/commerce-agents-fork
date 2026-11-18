@@ -284,7 +284,8 @@ def build_storefront_host(
             "store": backend.store_name,
             "products": len(backend.products),
             "skills": agent.skills.names,
-            "model": agent.config.model,
+            "ai_enabled": bool(os.environ.get("LLM_API_KEY")),
+            "model": agent.config.model if os.environ.get("LLM_API_KEY") else None,
         }
 
     return host

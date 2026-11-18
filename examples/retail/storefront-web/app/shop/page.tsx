@@ -11,7 +11,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatMoney, useSession } from "web-shared";
-import { ProductImage, ProductTitle } from "@/components/ProductTile";
+import { ProductTitle } from "@/components/ProductTile";
+import { productTileClass } from "@/lib/format";
 import { api } from "@/lib/api";
 import type { CartPayload, Product, ProductDetails } from "@/lib/types";
 
@@ -25,6 +26,24 @@ interface OrderRow {
   placed_at?: string;
   items?: OrderLine[];
   total?: number;
+}
+
+/** A product photo, or a plain tile with a drawn bag icon and the brand initials (no emoji). */
+function ShopImage({ product, className = "" }: { product: Product; className?: string }) {
+  if (product.image_url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={product.image_url} alt={product.title} className={`object-cover ${className}`} />;
+  }
+  const initials = (product.brand ?? product.title).replace(/^ACME\s+/i, "").slice(0, 2).toUpperCase();
+  return (
+    <div className={`flex flex-col items-center justify-center gap-1 ${productTileClass(product.product_id)} ${className}`} aria-hidden>
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-60">
+        <path d="M6 8h12l-1 12H7L6 8z" />
+        <path d="M9 8V6a3 3 0 016 0v2" />
+      </svg>
+      <span className="text-xs font-semibold tracking-widest opacity-60">{initials}</span>
+    </div>
+  );
 }
 
 const CATEGORY_LABEL = (id: string) =>
@@ -119,7 +138,7 @@ export default function ShopPage() {
     <aside aria-label="Cart" className="flex h-full flex-col bg-white">
       <div className="flex items-center justify-between border-b border-(--line,#e5e7eb) px-4 py-3">
         <div className="font-semibold text-(--ink)">
-          Cart <span className="ml-1 rounded-full bg-(--well) px-2 py-0.5 text-xs">{count} items</span>
+          Cart <span className="ml-1 rounded-full bg-(--well) px-2 py-0.5 text-xs">{count === 1 ? "1 item" : `${count} items`}</span>
         </div>
         <button className="text-sm text-(--ink-soft) md:hidden" onClick={() => setCartOpen(false)}>
           Close
@@ -175,26 +194,29 @@ export default function ShopPage() {
 
   return (
     <div className="flex h-screen flex-col bg-(--surface-2,#f4f5f9) text-(--ink)">
-      <header className="flex items-center gap-4 border-b border-(--well) bg-white px-4 py-2.5">
-        <span className="grid h-[30px] w-[30px] place-items-center rounded-lg bg-(--ink) text-[15px] font-bold text-(--surface)">A</span>
-        <span className="text-[17px] font-bold tracking-tight">ACME</span>
-        <nav className="flex gap-1 text-sm">
+      <header className="flex items-center gap-2 border-b sm:gap-4 border-(--well) bg-white px-4 py-2.5">
+        <span className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-lg bg-(--ink) text-[15px] font-bold text-(--surface)">A</span>
+        <span className="hidden text-[17px] font-bold tracking-tight sm:inline">ACME</span>
+        <nav className="flex gap-0.5 text-[13px] sm:gap-1 sm:text-sm">
           {(["shop", "orders"] as const).map((id) => (
-            <button key={id} onClick={() => setTab(id)} className={`rounded-md px-3 py-1.5 ${tab === id ? "bg-(--well) font-semibold" : ""}`}>
+            <button key={id} onClick={() => setTab(id)} className={`rounded-md px-2 py-1.5 sm:px-3 ${tab === id ? "bg-(--well) font-semibold" : ""}`}>
               {id === "shop" ? "Shop" : "Orders"}
             </button>
           ))}
-          <a href="/?assistant" className="rounded-md px-3 py-1.5 text-(--ink-soft)">
+          <a href="/?assistant" className="rounded-md px-2 py-1.5 text-(--ink-soft) sm:px-3">
             Assistant
           </a>
         </nav>
-        <div className="ml-auto flex items-center gap-3 text-sm">
-          <span className="hidden text-(--ink-soft) sm:inline">{session.shopper?.name ?? "Guest"}</span>
-          <button className="rounded-lg border px-3 py-1.5 md:hidden" onClick={() => setCartOpen(true)}>
+        <div className="ml-auto flex shrink-0 items-center gap-3 text-sm">
+          <span className="hidden text-(--ink-soft) sm:inline">Demo shopper</span>
+          <button className="whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-[13px] md:hidden" onClick={() => setCartOpen(true)}>
             Cart ({count})
           </button>
         </div>
       </header>
+      <div role="note" className="bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
+        Demo store: the products, ratings, orders and shopper are fictional sample data. No payments, no real orders.
+      </div>
       <div className="flex min-h-0 flex-1">
         <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 md:px-8">
           {message ? (
@@ -228,7 +250,7 @@ export default function ShopPage() {
                 {shown.map((p) => (
                   <article key={p.product_id} className="flex flex-col overflow-hidden rounded-xl border bg-white">
                     <button onClick={() => view(p.product_id)} className="text-left" aria-label={`Details for ${p.title}`}>
-                      <ProductImage product={p} className="h-36 w-full" />
+                      <ShopImage product={p} className="h-36 w-full" />
                       <div className="p-3 pb-1">
                         <div className="text-[11px] uppercase tracking-wide text-(--ink-soft)">{p.brand}</div>
                         <ProductTitle title={p.title} className="line-clamp-2 text-[13.5px] font-medium" />
@@ -237,7 +259,7 @@ export default function ShopPage() {
                     <div className="mt-auto flex items-center justify-between p-3 pt-1">
                       <div>
                         <div className="text-[15px] font-bold">{formatMoney(p.price, p.currency)}</div>
-                        {p.rating ? <div className="text-[11px] text-(--ink-soft)">★ {p.rating} ({p.review_count})</div> : null}
+                        {p.rating ? <div className="text-[11px] text-(--ink-soft)">★ {p.rating} ({p.review_count}) sample</div> : null}
                       </div>
                       {p.options && Object.keys(p.options).length ? (
                         <button onClick={() => view(p.product_id)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold">
@@ -257,7 +279,7 @@ export default function ShopPage() {
             </>
           ) : (
             <section aria-label="Orders">
-              <h1 className="mb-3 text-xl font-bold">Your orders</h1>
+              <h1 className="mb-3 text-xl font-bold">Sample orders (demo data)</h1>
               {!orders ? <p className="text-sm text-(--ink-soft)">Loading…</p> : null}
               {orders?.map((order) => (
                 <div key={order.order_id} className="mb-3 rounded-xl border bg-white p-4">
@@ -274,7 +296,7 @@ export default function ShopPage() {
                   </ul>
                 </div>
               ))}
-              <p className="text-xs text-(--ink-soft)">Sample orders for a demo shopper.</p>
+              <p className="text-xs text-(--ink-soft)">These orders are fictional sample data, not real customer activity.</p>
             </section>
           )}
         </main>
@@ -290,7 +312,7 @@ export default function ShopPage() {
       {open ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setOpen(null)}>
           <div role="dialog" aria-label={open.title} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
-            <ProductImage product={open} className="h-52 w-full" />
+            <ShopImage product={open} className="h-52 w-full" />
             <div className="p-5">
               <div className="text-xs uppercase text-(--ink-soft)">{open.brand}</div>
               <h2 className="text-lg font-bold">{open.title}</h2>
