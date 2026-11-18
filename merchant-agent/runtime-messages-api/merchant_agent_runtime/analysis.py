@@ -18,7 +18,7 @@ import logging
 import time
 from typing import Any, cast
 
-from anthropic import AsyncAnthropic
+from commerce_common.llm import AsyncLLMClient
 from pydantic import BaseModel, ValidationError
 
 from commerce_common.delegation import DelegateExtension, DelegationContext
@@ -83,7 +83,7 @@ def present_analysis(result: BaseModel, context: DelegationContext) -> tuple[Any
 
 
 def build_analysis_delegate(
-    client: AsyncAnthropic, backend: MerchantBackend, config: MerchantAgentConfig
+    client: AsyncLLMClient, backend: MerchantBackend, config: MerchantAgentConfig
 ) -> DelegateExtension:
     definition = build_analysis_tool_definition()
     runner = AnalysisRunner(client=client, backend=backend, config=config)
@@ -105,7 +105,7 @@ class AnalysisRunner:
     """Builds the delegate's tool surface once per deployment and runs one loop per call."""
 
     def __init__(
-        self, *, client: AsyncAnthropic, backend: MerchantBackend, config: MerchantAgentConfig
+        self, *, client: AsyncLLMClient, backend: MerchantBackend, config: MerchantAgentConfig
     ) -> None:
         self._client = client
         self._backend = backend

@@ -29,49 +29,38 @@ def env_dirs(tmp_path, monkeypatch):
     repo_root, example_root = tmp_path / "repo", tmp_path / "repo" / "examples" / "retail"
     example_root.mkdir(parents=True)
     monkeypatch.setattr(host_module, "REPO_ROOT", repo_root)
-    for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN", "COMMERCE_DEMO_AUTH"):
+    for name in ("LLM_API_KEY", "COMMERCE_DEMO_AUTH"):
         monkeypatch.delenv(name, raising=False)
     return repo_root, example_root
 
 
 def test_a_key_in_the_environment_survives_a_blank_env_file(env_dirs, monkeypatch):
     repo_root, example_root = env_dirs
-    (repo_root / ".env").write_text("ANTHROPIC_API_KEY=\n")
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-the-shell")
+    (repo_root / ".env").write_text("LLM_API_KEY=\n")
+    monkeypatch.setenv("LLM_API_KEY", "from-the-shell")
 
     load_demo_env(example_root)
 
-    assert os.environ["ANTHROPIC_API_KEY"] == "from-the-shell"
+    assert os.environ["LLM_API_KEY"] == "from-the-shell"
 
 
 def test_the_example_env_file_fills_in_before_the_repo_root_one(env_dirs):
     repo_root, example_root = env_dirs
-    (repo_root / ".env").write_text("ANTHROPIC_API_KEY=root-key\n")
-    (example_root / ".env").write_text("ANTHROPIC_API_KEY=example-key\n")
+    (repo_root / ".env").write_text("LLM_API_KEY=root-key\n")
+    (example_root / ".env").write_text("LLM_API_KEY=example-key\n")
 
     load_demo_env(example_root)
 
-    assert os.environ["ANTHROPIC_API_KEY"] == "example-key"
+    assert os.environ["LLM_API_KEY"] == "example-key"
 
 
 def test_the_repo_root_env_file_is_read_when_the_example_has_none(env_dirs):
     repo_root, example_root = env_dirs
-    (repo_root / ".env").write_text("ANTHROPIC_API_KEY=root-key\n")
+    (repo_root / ".env").write_text("LLM_API_KEY=root-key\n")
 
     load_demo_env(example_root)
 
-    assert os.environ["ANTHROPIC_API_KEY"] == "root-key"
-
-
-def test_sdk_auth_clears_key_variables_and_reads_no_file(env_dirs, monkeypatch):
-    repo_root, example_root = env_dirs
-    (repo_root / ".env").write_text("ANTHROPIC_API_KEY=root-key\n")
-    monkeypatch.setenv("COMMERCE_DEMO_AUTH", "sdk")
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "from-the-shell")
-
-    load_demo_env(example_root)
-
-    assert "ANTHROPIC_API_KEY" not in os.environ
+    assert os.environ["LLM_API_KEY"] == "root-key"
 
 
 async def test_spawn_background_holds_the_task_until_it_finishes():

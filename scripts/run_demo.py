@@ -15,7 +15,7 @@ stops everything on Ctrl-C. Python packages and the examples/ npm workspace are 
 first run. Ports are preferences: this vertical's API already running on its port is reused;
 any other busy port moves the server to the next free one, and the web apps are pointed at
 wherever the API is. Chat credentials come from the environment, the vertical's .env, the
-repo-root .env, then the SDK's credential chain; browsing and /showcase need none.
+repo-root .env, ; browsing and /showcase need none.
 """
 
 from __future__ import annotations
@@ -82,12 +82,12 @@ def find_free_port(preferred: int, span: int = 50) -> int:
 
 
 def env_file_has_key(path: Path) -> bool:
-    """True when the file sets a non-empty ANTHROPIC_API_KEY (a copied placeholder does not)."""
+    """True when the file sets a non-empty LLM_API_KEY (a copied placeholder does not)."""
     if not path.exists():
         return False
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         key, _, value = line.strip().partition("=")
-        if key.strip() == "ANTHROPIC_API_KEY" and value.strip().strip("\"'"):
+        if key.strip() == "LLM_API_KEY" and value.strip().strip("\"'"):
             return True
     return False
 
@@ -242,7 +242,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--federated",
         action="store_true",
-        help="authenticate through the SDK's credential chain, ignoring key files and ANTHROPIC_API_KEY",
+        help="authenticate through the SDK's credential chain, ignoring key files and LLM_API_KEY",
     )
     return parser
 
@@ -290,11 +290,11 @@ def main() -> int:
             print(f"{YELLOW}Port {port} is busy — starting the {label} on :{moved}.{RESET}")
             webs[index] = (label, app_dir, moved)
 
-    if run_api and not reuse_api and not args.federated and not os.environ.get("ANTHROPIC_API_KEY"):
+    if run_api and not reuse_api and not args.federated and not os.environ.get("LLM_API_KEY"):
         env_file = EXAMPLES_DIR / args.vertical / ".env"
         if not env_file_has_key(env_file) and not env_file_has_key(REPO_ROOT / ".env"):
             print(
-                f"{YELLOW}No ANTHROPIC_API_KEY found; chat uses the SDK's credential chain if "
+                f"{YELLOW}No LLM_API_KEY found; chat will fail unless "
                 f"one is configured and otherwise returns an error event. To use a key:{RESET}\n"
                 "  cp .env.example .env   # at the repo root; fill in the key and restart"
             )

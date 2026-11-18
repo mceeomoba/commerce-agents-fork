@@ -72,6 +72,6 @@ The approval mark is host code writing `state.approved_change_ids`; that gate an
 others (fencing, provenance, guardrails, memory validation) live in `merchant_agent` and
 `commerce_common`, and [`docs/safety.md`](../../docs/safety.md) lists them.
 
-Credentials: the default client reads `ANTHROPIC_API_KEY` (or a token and base URL) from
+Credentials: the default client reads `LLM_API_KEY` (or a token and base URL) from
 the environment. Tests run without any: `pytest merchant-agent/runtime-messages-api/tests`
 scripts the model with `commerce_common.testing.FakeClient`.

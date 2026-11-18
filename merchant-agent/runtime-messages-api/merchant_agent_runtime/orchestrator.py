@@ -24,7 +24,7 @@ from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 from typing import Any, cast
 
-from anthropic import AsyncAnthropic
+from commerce_common.llm import AsyncLLMClient
 
 from commerce_common.delegation import DelegateExtension
 from commerce_common.grounding import first_forced_tool
@@ -95,7 +95,7 @@ class MerchantAgent:
         config: MerchantAgentConfig | None = None,
         memory_store: MemoryStore | None = None,
         memory_write_filter: MemoryWriteFilter | None = None,
-        client: AsyncAnthropic | None = None,
+        client: AsyncLLMClient | None = None,
         extra_presentation_tools: Sequence[PresentationExtension] = (),
         extra_delegates: Sequence[DelegateExtension] = (),
         executor_class: type[MerchantToolExecutor] = MerchantToolExecutor,
@@ -107,7 +107,7 @@ class MerchantAgent:
         self.backend = backend
         self.skills = skills
         self.memory: MemoryRuntime = build_memory(self.config, memory_store, memory_write_filter)
-        self.client = client or AsyncAnthropic(timeout=self.config.request_timeout_s)
+        self.client = client or AsyncLLMClient(timeout=self.config.request_timeout_s)
         self.extra_presentation_tools = tuple(extra_presentation_tools)
         self.extra_delegates = tuple(extra_delegates)
         built_in = (

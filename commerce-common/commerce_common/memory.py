@@ -22,8 +22,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Protocol
 
-from anthropic import AsyncAnthropic
-from anthropic.types import ToolParam
+from commerce_common.llm import AsyncLLMClient
 
 from .fencing import Fence
 from .streaming import ToolOutcome
@@ -32,7 +31,7 @@ from .types import MemoryCategory, MemoryFact
 
 logger = logging.getLogger(__name__)
 
-_RECORD_FACT_TOOL: ToolParam = {
+_RECORD_FACT_TOOL: dict[str, Any] = {
     "name": "record_fact",
     "description": "Record one new durable fact about the user.",
     "input_schema": {
@@ -437,7 +436,7 @@ def _same_fact(a: str, b: str) -> bool:
 
 
 async def extract_facts(
-    client: AsyncAnthropic,
+    client: AsyncLLMClient,
     model: str,
     transcript: str,
     existing_facts: list[MemoryFact],
@@ -507,7 +506,7 @@ async def extract_facts(
 async def extract_and_store(
     store: MemoryStore,
     subject_id: str,
-    client: AsyncAnthropic,
+    client: AsyncLLMClient,
     model: str,
     transcript: str,
     *,
@@ -638,7 +637,7 @@ class MemoryRuntime:
         )
 
     async def extract(
-        self, client: AsyncAnthropic, subject_id: str, session_id: str, transcript: str
+        self, client: AsyncLLMClient, subject_id: str, session_id: str, transcript: str
     ) -> list[MemoryFact]:
         """The post-turn pass. Returns nothing when memory is off, the transcript is
         empty, or the extraction fails: memory never fails a turn, and a failure is

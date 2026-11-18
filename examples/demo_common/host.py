@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Protocol
 
-import anthropic
+from commerce_common import llm
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,14 +59,9 @@ class DemoStorefront(Protocol):
 def load_demo_env(example_root: Path) -> None:
     """Load credentials before any agent is constructed. A variable already in the
     environment wins; the example's own ``.env`` fills in the rest, then the repo-root
-    one; ``COMMERCE_DEMO_AUTH=sdk`` clears key variables instead so the Anthropic SDK's
-    own credential chain is used."""
-    if os.environ.get("COMMERCE_DEMO_AUTH", "").lower() == "sdk":
-        os.environ.pop("ANTHROPIC_API_KEY", None)
-        os.environ.pop("ANTHROPIC_AUTH_TOKEN", None)
-    else:
-        load_dotenv(example_root / ".env", override=False)
-        load_dotenv(REPO_ROOT / ".env", override=False)
+    one."""
+    load_dotenv(example_root / ".env", override=False)
+    load_dotenv(REPO_ROOT / ".env", override=False)
 
 
 def host_approval_default() -> bool:
@@ -88,11 +83,10 @@ def spawn_background(coro: Coroutine[Any, Any, object]) -> None:
 def _lifespan(on_startup: Sequence[Callable[[], Awaitable[None]]]):
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-        if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
+        if not os.environ.get("LLM_API_KEY"):
             logger.info(
-                "No API key in the environment or .env files; the Anthropic SDK falls back "
-                "to its own credential chain. If chat returns auth errors, set "
-                "ANTHROPIC_API_KEY in a .env file (repo root or the example's directory)."
+                "LLM_API_KEY is not set. Chat needs an OpenAI-compatible endpoint: set "
+                "LLM_BASE_URL, LLM_API_KEY and LLM_MODEL in the environment or a .env file."
             )
         for step in on_startup:
             await step()
@@ -173,14 +167,12 @@ def stream_turn(
                 if event.type == "turn_complete" and event.data.get("results_cleared"):
                     record.stored_messages = 0  # earlier messages changed: rewrite the transcript
                 yield to_sse(event)
-        except anthropic.AuthenticationError:
+        except llm.AuthenticationError:
             logger.exception("chat turn failed: API authentication")
             yield to_sse(
                 AgentEvent.error(
-                    f"Anthropic API authentication failed (401). Check ANTHROPIC_API_KEY in "
-                    f"{env_hint} or the repo-root .env, unset any stale key exported by your "
-                    "shell, or restart with COMMERCE_DEMO_AUTH=sdk to use the SDK's own "
-                    "credential chain."
+                    f"Model API authentication failed. Check LLM_API_KEY and LLM_BASE_URL in "
+                    f"{env_hint} or the repo-root .env, or in the environment, and restart."
                 )
             )
         except Exception as error:  # the client gets a safe event, the log gets the rest
@@ -189,8 +181,8 @@ def stream_turn(
             if any(word in described for word in ("authentication", "credential", "api_key")):
                 yield to_sse(
                     AgentEvent.error(
-                        "No Anthropic API credentials are configured, so chat can't run. Set "
-                        f"ANTHROPIC_API_KEY in {env_hint} or the repo-root .env and restart; "
+                        "No model API credentials are configured, so chat can't run. Set "
+                        f"LLM_API_KEY in {env_hint} or the repo-root .env and restart; "
                         "everything except chat works without one."
                     )
                 )

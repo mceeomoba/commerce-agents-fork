@@ -15,8 +15,5 @@
 ``execution``         ``BaseToolExecutor``, the frame each role's executor extends
 ``streaming``         ``AgentEvent``, ``ToolOutcome``, ``to_sse``
 ``turn``              helpers for the Messages API turn loop
-``agent_sdk``         plumbing for the Agent SDK runtimes (needs ``claude-agent-sdk``)
-``mcp_server``        plumbing for the reference MCP servers (needs ``mcp``)
-``manifest``          resolves a Managed Agent manifest; ``scripts/deploy_managed_agent.sh`` runs it
 ``testing``           a scripted fake model client
 """

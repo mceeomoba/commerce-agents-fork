@@ -11,7 +11,7 @@ state. A vertical may add deterministic checks that run after its conversation
     python scripts/smoke_chat.py [--vertical travel] [--url http://localhost:8001]
     python scripts/smoke_chat.py --merchant [--arc trend]
 
-Needs Anthropic credentials; each run costs a few cents.
+Needs LLM credentials (LLM_API_KEY).
 """
 
 from __future__ import annotations

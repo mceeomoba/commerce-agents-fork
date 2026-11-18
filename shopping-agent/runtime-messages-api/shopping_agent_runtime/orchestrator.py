@@ -22,7 +22,7 @@ from collections.abc import AsyncIterator, Sequence
 from pathlib import Path
 from typing import Any, cast
 
-from anthropic import AsyncAnthropic
+from commerce_common.llm import AsyncLLMClient
 
 from commerce_common.grounding import first_forced_tool
 from commerce_common.memory import MemoryRuntime, MemoryStore, MemoryWriteFilter
@@ -87,7 +87,7 @@ class ShoppingAgent:
         config: ShoppingAgentConfig | None = None,
         memory_store: MemoryStore | None = None,
         memory_write_filter: MemoryWriteFilter | None = None,
-        client: AsyncAnthropic | None = None,
+        client: AsyncLLMClient | None = None,
         extra_presentation_tools: Sequence[PresentationExtension] = (),
         executor_class: type[ShoppingToolExecutor] = ShoppingToolExecutor,
     ) -> None:
@@ -98,7 +98,7 @@ class ShoppingAgent:
         self.backend = backend
         self.skills = skills
         self.memory: MemoryRuntime = build_memory(self.config, memory_store, memory_write_filter)
-        self.client = client or AsyncAnthropic(timeout=self.config.request_timeout_s)
+        self.client = client or AsyncLLMClient(timeout=self.config.request_timeout_s)
         self.extra_presentation_tools = tuple(extra_presentation_tools)
         self._specs: dict[str, PresentationComponent] = {
             **PRESENTATION_COMPONENTS,

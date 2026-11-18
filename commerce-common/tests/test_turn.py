@@ -5,7 +5,7 @@ import json
 import logging
 from types import SimpleNamespace
 
-from anthropic.types import Message, TextBlock, Usage
+from commerce_common.llm import _Obj
 
 from commerce_common.streaming import AgentEvent, ToolOutcome
 from commerce_common.turn import (
@@ -288,16 +288,13 @@ def test_prompt_tokens_counts_everything_the_model_was_given():
 # -- usage and the model-call record ------------------------------------------------------
 
 
-def _message() -> Message:
-    return Message(
-        id="msg_1",
+def _message() -> _Obj:
+    return _Obj(
         type="message",
         role="assistant",
-        model="claude-test",
-        content=[TextBlock(type="text", text="Here you go.")],
+        content=[_Obj(type="text", text="Here you go.")],
         stop_reason="end_turn",
-        stop_sequence=None,
-        usage=Usage(
+        usage=_Obj(
             input_tokens=120,
             output_tokens=8,
             cache_read_input_tokens=100,
@@ -320,13 +317,13 @@ def test_usage_accumulates_all_four_counters():
 
 def test_the_model_call_record_lands_on_the_callers_logger_with_bodies_at_debug(caplog):
     caller = logging.getLogger("shopping_agent_runtime.orchestrator")
-    request = {"model": "claude-test", "messages": [{"role": "user", "content": "tents"}]}
+    request = {"model": "test-model", "messages": [{"role": "user", "content": "tents"}]}
     with caplog.at_level(logging.INFO, logger=caller.name):
         log_model_call(caller, request, _message(), 0.0, "s-1", round=0)
     (info,) = caplog.records
     assert info.name == caller.name
     line = info.getMessage()
-    assert f"session={session_tag('s-1')} round=0 model=claude-test stop=end_turn" in line
+    assert f"session={session_tag('s-1')} round=0 model=test-model stop=end_turn" in line
     assert "s-1" not in line
     assert "input=120 cache_read=100 cache_write=20 output=8 elapsed_ms=" in line
     caplog.clear()

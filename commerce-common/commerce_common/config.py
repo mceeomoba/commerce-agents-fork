@@ -14,8 +14,8 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .fencing import MAX_FENCED_CHARS
+from .llm import default_model
 
-DEFAULT_MEMORY_MODEL = "claude-haiku-4-5-20251001"
 
 ThinkingEffort = Literal["low", "medium", "high", "xhigh", "max"]
 
@@ -33,8 +33,8 @@ class BaseAgentConfig(BaseModel):
     # post-turn extraction on `memory_model`. The turn loop sends adaptive thinking at
     # `thinking_effort`, or thinking disabled when it is None; either way `max_tokens`
     # bounds the thinking and the reply together.
-    model: str
-    memory_model: str = DEFAULT_MEMORY_MODEL
+    model: str = Field(default_factory=default_model)
+    memory_model: str = Field(default_factory=default_model)
     thinking_effort: ThinkingEffort | None = None
 
     # -- Budgets. The iteration cap is a runaway guard: a multi-part request has to finish

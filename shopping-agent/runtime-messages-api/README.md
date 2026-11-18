@@ -62,6 +62,6 @@ stream error propagates out of `stream_turn`; the host catches it and emits an `
 The gates themselves (fencing, provenance, caps, memory validation) are in
 `shopping_agent` and `commerce_common`; [`docs/safety.md`](../../docs/safety.md) lists them.
 
-Credentials: the default client reads `ANTHROPIC_API_KEY` (or a token and base URL) from
+Credentials: the default client reads `LLM_API_KEY` (or a token and base URL) from
 the environment. Tests run without any: `pytest shopping-agent/runtime-messages-api/tests`
 scripts the model with `commerce_common.testing.FakeClient`.

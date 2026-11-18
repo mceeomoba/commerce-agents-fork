@@ -15,7 +15,6 @@ from commerce_common.config import BaseAgentConfig, ThinkingEffort
 class MerchantAgentConfig(BaseAgentConfig):
     assistant_name: str = "the merchant assistant"
     brand_voice: str = "plain and specific, numbers first"
-    model: str = "claude-opus-5"
     thinking_effort: ThinkingEffort | None = "low"
 
     # -- The analysis delegate. `analysis_model` None means the main model; the hosted

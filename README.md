@@ -1,9 +1,11 @@
-# Claude Commerce Agents
+# Commerce Agents (provider-neutral fork)
 
-Two commerce agents built on Claude: a **shopping agent** a business embeds in its app for
+Fork of [anthropics/commerce-agents](https://github.com/anthropics/commerce-agents) (Apache-2.0, Copyright 2026 Anthropic PBC; license and file notices kept). This fork removes the Anthropic SDK, Claude Agent SDK, Managed Agents and Claude Code plugin; the agents run on any OpenAI-compatible chat-completions endpoint (`commerce_common/llm.py`). Provider-only features (server web search, hosted code execution, prompt caching, extended thinking) are dropped.
+
+
+Two commerce agents built on an OpenAI-compatible LLM endpoint: a **shopping agent** a business embeds in its app for
 customers, and a **merchant agent** its staff use to run the back office. Each is defined
-once (prompt, skills, tool contracts, gates) and runs on the Messages API, the Claude Agent
-SDK, and Managed Agents; four runnable verticals show both over the same libraries.
+once (prompt, skills, tool contracts, gates) and runs on one turn loop; four runnable verticals show both over the same libraries.
 
 > [!NOTE]
 > Every company, brand, product, and person here is fictional; the only company is ACME.
@@ -19,7 +21,7 @@ Python 3.11+ and Node 22. Clone, install, add a key, run a vertical:
 git clone https://github.com/anthropics/commerce-agents.git && cd commerce-agents
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt       # the seven packages and their pinned dependencies
-cp .env.example .env                  # add ANTHROPIC_API_KEY
+cp .env.example .env                  # set LLM_BASE_URL, LLM_API_KEY, LLM_MODEL
 (cd examples && npm ci)               # the eight web apps share one workspace
 python scripts/run_demo.py retail     # API :8000 + storefront :3000
 ```
@@ -27,23 +29,6 @@ python scripts/run_demo.py retail     # API :8000 + storefront :3000
 `--merchant` starts the portal instead of the storefront and `--all` starts both. The
 verticals are `retail` (:3000, portal :3100), `travel` (:3001, :3101), `telecom` (:3002,
 :3102), and `entertainment` (:3003, :3103); each README lists prompts to try on both surfaces.
-
-## Quick start: build your own
-
-The Claude Code plugin scaffolds an agent on these packages against your systems, or reviews
-one you have. With the repo cloned as above (the plugin reads it as the reference):
-
-```bash
-claude plugin marketplace add anthropics/commerce-agents
-claude plugin install commerce-builder@claude-commerce-agents
-claude
-/scaffold-commerce-agent a shopping assistant for our store
-```
-
-The command asks about your stack, plays the plan back, and builds the project; `/add-commerce-flow`
-and `/author-commerce-evals` continue from there, and `/review-commerce-agent` starts from an agent
-that already exists ([`plugins/commerce-builder/`](plugins/commerce-builder/)). Each command also
-runs when a request matches its description, so naming it is optional.
 
 ## The two agents
 
@@ -66,17 +51,12 @@ its analytics, catalog, inventory, pricing, and campaign systems.
 | [`commerce-common/`](commerce-common/) | What both roles share: config, fencing, memory, skills, grounding, presentation, executor frame, events | `commerce-common`, `commerce_common` |
 | [`shopping-agent/core/`](shopping-agent/core/) | Shopping types, `StorefrontBackend`, prompt, tool contracts, gates, executor | `shopping-agent-core`, `shopping_agent` |
 | [`shopping-agent/runtime-messages-api/`](shopping-agent/runtime-messages-api/) | `ShoppingAgent`, the turn loop on the Messages API | `shopping-agent-runtime`, `shopping_agent_runtime` |
-| [`shopping-agent/runtime-agent-sdk/`](shopping-agent/runtime-agent-sdk/) | The shopping agent on the Agent SDK, with a console | `shopping-agent-sdk`, `shopping_agent_sdk` |
-| [`shopping-agent/managed-agents/`](shopping-agent/managed-agents/) | Manifest and storefront MCP server for Managed Agents | — |
 | [`merchant-agent/core/`](merchant-agent/core/) | Merchant types, `MerchantBackend`, prompt, tool contracts, change guardrails, gates, executor | `merchant-agent-core`, `merchant_agent` |
 | [`merchant-agent/runtime-messages-api/`](merchant-agent/runtime-messages-api/) | `MerchantAgent` and the analysis delegate on the Messages API | `merchant-agent-runtime`, `merchant_agent_runtime` |
-| [`merchant-agent/runtime-agent-sdk/`](merchant-agent/runtime-agent-sdk/) | The merchant agent on the Agent SDK, with an approving console | `merchant-agent-sdk`, `merchant_agent_sdk` |
-| [`merchant-agent/managed-agents/`](merchant-agent/managed-agents/) | Manifest, merchant MCP server, scheduled digest for Managed Agents | — |
 | [`examples/`](examples/) | Four verticals, shared host code (`demo_common/`), shared web code (`web-shared/`) | — |
-| [`plugins/commerce-builder/`](plugins/commerce-builder/) | The Claude Code plugin | — |
 | [`docs/`](docs/) | `safety.md` (enforced rules), `backends.md` (mapping your systems), `deployment.md` (other platforms) | — |
 | [`tests/`](tests/) | Cross-package suites; each package also has its own `tests/` | — |
-| [`scripts/`](scripts/) | `install.sh`, `run_demo.py`, `smoke_chat.py`, `screenshot_tour.py`, `check.py`, `deploy_managed_agent.sh`, `verify_all.py` | — |
+| [`scripts/`](scripts/) | `install.sh`, `run_demo.py`, `smoke_chat.py`, `screenshot_tour.py`,  | — |
 
 ## Three ways to run an agent
 
@@ -97,24 +77,10 @@ await agent.update_memory(messages, session)   # memory extraction; this path on
 
 The example hosts take the session id in an `X-Session-Id` header.
 
-**Agent SDK.** The same prompt, skills, and tools, with the SDK running the loop; the host
-prefetches grounding reads, and nothing runs after the turn:
-
-```bash
-python shopping-agent/runtime-agent-sdk/main.py --once "a two-person tent under $250"
-python merchant-agent/runtime-agent-sdk/main.py          # approves staged changes with y/N
-```
-
-**Managed Agents.** A hosted agent over the same skills and contracts, calling your MCP server:
-
-```bash
-scripts/deploy_managed_agent.sh shopping-agent/managed-agents/shopping-agent   # or merchant-agent/...; --live deploys
-```
-
 ## Safety
 
 Fencing, provenance gates, caps, memory validation, and the merchant approval gate run
-inside the tool call and hold on all three paths; grounding, the analysis budgets, and memory
+inside the tool call and hold; grounding, the analysis budgets, and memory
 extraction are runtime features. [`docs/safety.md`](docs/safety.md) lists each rule with its
 module and paths, and what a deployment adds first; the examples have no authentication and
 the MCP servers bind to loopback.
@@ -145,10 +111,9 @@ public index (the pin files install them from their directories, never from the 
 `cache_read_input_tokens` from `turn_complete`, or the line each model call logs on its
 runtime's logger: zero on a second turn means the prefix changed.
 
-## Deploying elsewhere
+## Deploying
 
-The runtimes take any `anthropic` client as `client=` and the SDK runtimes take the platform
-from the CLI environment; [`docs/deployment.md`](docs/deployment.md) covers GCP Vertex AI, AWS Bedrock, Microsoft Foundry, and gateways.
+Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`, or pass any object with `messages.stream` / `messages.create` as `client=`. See [`docs/deployment.md`](docs/deployment.md).
 
 ## MCP connectors
 
@@ -156,7 +121,7 @@ None ship; both agents reach your systems through the backend interfaces. Where 
 connector is the source of record, it is the integration target: analytics warehouses (Snowflake,
 BigQuery, Databricks, Amplitude), finance (Stripe, Square, PayPal, QuickBooks), delivery (Slack, Google Drive, Gmail).
 A commerce platform's own MCP server for catalog, cart, or checkout is called from a backend
-method server-side; on Managed Agents the manifest mounts it beside the role's server, and the
+method server-side; the
 provenance gates stay in front of every write.
 
 ## Making it yours
