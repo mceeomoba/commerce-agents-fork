@@ -12,6 +12,8 @@ user, so what a shopper asks the store to remember, or to forget, survives a res
 
 from __future__ import annotations
 
+import os
+
 from fastapi.staticfiles import StaticFiles
 
 from commerce_common.memory import InMemoryMemoryStore, JsonFileMemoryStore
@@ -72,3 +74,11 @@ async def cart_add(request: CartAddRequest, record: host.CurrentSession) -> dict
         request,
         note="Customer tapped the add-to-cart button on {title} ({product_id}), quantity {quantity}.",
     )
+
+
+# Single-process hosting: with STOREFRONT_STATIC_DIR set to the storefront's static export
+# (STATIC_EXPORT=1 npm run build), this API also serves the storefront pages on the same origin.
+# Mounted last so every /api route and /products wins.
+_static_dir = os.environ.get("STOREFRONT_STATIC_DIR")
+if _static_dir:
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="storefront")
