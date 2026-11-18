@@ -11,7 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
+try:  # PyYAML needs a build step some hosts (Android) cannot do; a small fallback covers it.
+    import yaml
+except ImportError:  # pragma: no cover - exercised by tests through _simple_frontmatter
+    yaml = None
 
 
 @dataclass(frozen=True)
@@ -25,6 +28,29 @@ class SkillLoadError(ValueError):
     pass
 
 
+def _simple_frontmatter(text: str) -> dict:
+    """Flat `key: value` frontmatter with optional quotes and indented continuation lines."""
+    meta: dict[str, str] = {}
+    key = None
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if line[0] in " \t" and key:
+            meta[key] = f"{meta[key]} {line.strip()}".strip()
+            continue
+        name, sep, value = line.partition(":")
+        if not sep:
+            continue
+        key = name.strip()
+        value = value.strip()
+        if value[:1] in "|>":
+            value = ""
+        elif len(value) > 1 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        meta[key] = value
+    return meta
+
+
 def parse_skill_md(text: str, path: Path | None = None) -> Skill:
     if not text.startswith("---"):
         raise SkillLoadError(f"{path or 'SKILL.md'}: missing YAML frontmatter")
@@ -32,7 +58,7 @@ def parse_skill_md(text: str, path: Path | None = None) -> Skill:
         _, frontmatter, body = text.split("---", 2)
     except ValueError as exc:
         raise SkillLoadError(f"{path or 'SKILL.md'}: malformed frontmatter fences") from exc
-    meta = yaml.safe_load(frontmatter) or {}
+    meta = (yaml.safe_load(frontmatter) if yaml else _simple_frontmatter(frontmatter)) or {}
     name = meta.get("name")
     description = meta.get("description")
     if not name or not description:
