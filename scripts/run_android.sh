@@ -3,12 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Single-process demo host: the retail API plus the prebuilt storefront on one port, using
-# libraries installed into ./libs (pip install --target libs -r requirements-android.txt).
+# libraries installed into ./libs (or LIBS_DIR; falls back to ./libs2) via pip install --target libs -r requirements-android.txt.
 # AI chat stays off unless LLM_API_KEY is set. Checkout is a demo; nothing is charged.
 set -e
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
-export PYTHONPATH="$ROOT/libs:$ROOT/commerce-common:$ROOT/shopping-agent/core:$ROOT/shopping-agent/runtime-messages-api:$ROOT/merchant-agent/core:$ROOT/merchant-agent/runtime-messages-api:$ROOT/examples"
+LIBS_DIR="${LIBS_DIR:-$ROOT/libs}"
+if [ ! -d "$LIBS_DIR" ] && [ -d "$ROOT/libs2" ]; then LIBS_DIR="$ROOT/libs2"; fi
+export PYTHONPATH="$LIBS_DIR:$ROOT/commerce-common:$ROOT/shopping-agent/core:$ROOT/shopping-agent/runtime-messages-api:$ROOT/merchant-agent/core:$ROOT/merchant-agent/runtime-messages-api:$ROOT/examples"
 if [ ! -f deploy/site/index.html ]; then
   mkdir -p deploy/site
   unzip -q -o deploy/storefront-export.zip -d deploy/site

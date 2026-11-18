@@ -137,7 +137,7 @@ Run one worker: sessions and carts live in process memory. Needs Python 3.11+ wi
 `pydantic-core` has no wheel on some hosts, so pydantic 2 cannot install there. The code
 imports its pydantic names from `commerce_common.pyd`, which re-exports pydantic 2 unchanged
 and, on pydantic 1.10 (pure Python), supplies the v2 surface the code uses. Install the pure
-set with `pip install --target libs -r requirements-android.txt` and start the single-process
+set with `pip install --target libs -r requirements-android.txt` (or set `LIBS_DIR` to another target) and start the single-process
 host with `scripts/run_android.sh` (retail API plus the prebuilt storefront in
 `deploy/storefront-export.zip`, one port, `PORT` defaults to 8787).
 

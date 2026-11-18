@@ -254,7 +254,7 @@ export default function ShopPage() {
         Demo store: the products, ratings, orders and shopper are fictional sample data. No payments, no real orders.
       </div>
       <div className="flex min-h-0 flex-1">
-        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-5 md:px-8">
+        <main className="min-w-0 flex-1 scroll-pt-4 overflow-y-auto px-4 py-5 md:px-8">
           {message ? (
             <div role="status" className="toast-in fixed left-1/2 top-16 z-30 -translate-x-1/2 rounded-lg bg-(--ink) px-4 py-2 text-sm text-(--surface) shadow">
               {message}
