@@ -112,6 +112,26 @@ public index (the pin files install them from their directories, never from the 
 `cache_read_input_tokens` from `turn_complete`, or the line each model call logs on its
 runtime's logger: zero on a second turn means the prefix changed.
 
+## Status of this fork
+
+- Tested: the fork's own suite (970 passed, 1 skipped) and a local end-to-end run against a mock OpenAI-compatible server. It has **not** been run against a real model, so tool-calling quality on any specific provider is unproven.
+- AI chat needs `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` for an endpoint you are allowed to use. With none set, the catalog, product pages, cart and portal widgets still work and chat does not.
+- Still demos: fictional ACME data, in-memory sessions, mock checkout, no payments. Do not put customer logins or payment details on a plain-HTTP host.
+- Removed: everything that needs Anthropic's services (Messages API client, Agent SDK, Managed Agents, the Claude Code plugin, server web search, hosted code execution, prompt caching, extended thinking). The original is the first commit in this history.
+- The MCP servers (`shopping-agent/managed-agents/storefront-mcp-server`, `merchant-agent/managed-agents/merchant-mcp-server`) use a small in-repo implementation (`commerce_common/mcp_lite.py`) of the open MCP wire format, with bearer-token auth (`MCP_AUTH_TOKEN`).
+
+## Run as one process (no Node on the host)
+
+Build the storefront once as plain files, then let the Python API serve them on the same origin:
+
+```bash
+(cd examples/retail/storefront-web && STATIC_EXPORT=1 npm run build)      # writes out/
+STOREFRONT_STATIC_DIR=$PWD/examples/retail/storefront-web/out \
+  uvicorn retail.api.main:app --app-dir examples --host 0.0.0.0 --port 8787
+```
+
+Run one worker: sessions and carts live in process memory. Needs Python 3.11+ with `fastapi`, `uvicorn`, `pydantic` v2 and the other packages in `requirements.txt`.
+
 ## Deploying
 
 Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`, or pass any object with `messages.stream` / `messages.create` as `client=`. See [`docs/deployment.md`](docs/deployment.md).
