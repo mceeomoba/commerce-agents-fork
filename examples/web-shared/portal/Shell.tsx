@@ -126,9 +126,9 @@ export function PortalShell<V extends string>({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-(--line) bg-(--chrome) px-3 py-2 lg:hidden">
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-(--line) bg-(--chrome) px-3 py-2 lg:hidden">
           {brand.mark}
-          <nav className="panel-scroll flex min-w-0 flex-1 gap-1 overflow-x-auto" aria-label="Portal views">
+          <nav className="panel-scroll order-last flex w-full min-w-0 basis-full gap-1 overflow-x-auto sm:order-none sm:w-auto sm:flex-1 sm:basis-0" aria-label="Portal views">
             {nav.map((item) => (
               <button
                 key={item.id}
@@ -150,7 +150,7 @@ export function PortalShell<V extends string>({
             type="button"
             onClick={onToggleAssistant}
             aria-pressed={assistantOpen}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-semibold ${
+            className={`ml-auto flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-semibold sm:ml-0 ${
               assistantOpen ? "bg-(--accent-soft) text-(--accent-ink)" : "bg-(--ink) text-(--surface)"
             }`}
           >

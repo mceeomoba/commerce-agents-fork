@@ -16,9 +16,9 @@ function AlertRow({ alert, onAskAssistant }: { alert: InventoryAlert; onAskAssis
   const name = chosen ? `${alert.title} in ${chosen}` : alert.title;
   const prompt = low ? `Draft a restock plan for ${name} (${alert.listing_id}).` : `Plan a markdown for ${name} (${alert.listing_id}).`;
   return (
-    <li className="flex items-center gap-3 px-[18px] py-3">
+    <li className="flex flex-wrap items-center gap-x-3 gap-y-2 px-[18px] py-3 sm:flex-nowrap">
       <KindIcon icon={style.icon} tone={soldOut ? "danger" : style.tone} />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-[10rem]">
         <div className="text-[13.5px] font-medium leading-snug text-(--ink)">
           {alert.title}
           {chosen ? <span className="font-normal text-(--ink-soft)"> · {chosen}</span> : null}
@@ -35,12 +35,12 @@ function AlertRow({ alert, onAskAssistant }: { alert: InventoryAlert; onAskAssis
           {soldOut && alert.storefront_visible === false ? <span>· hidden from the storefront</span> : null}
         </div>
       </div>
-      <div className="w-32 shrink-0 whitespace-nowrap text-right tabular-nums">
+      <div className="ml-11 w-32 shrink-0 whitespace-nowrap text-left tabular-nums sm:ml-0 sm:text-right">
         <div className={`text-[15px] font-semibold ${soldOut ? "text-(--danger)" : low ? "text-(--warn)" : "text-(--ink)"}`}>
           {soldOut ? "0" : formatNumber(alert.stock)}
           <span className="ml-1 text-[11.5px] font-medium text-(--ink-soft)">in stock</span>
         </div>
-        <div className="mt-0.5 flex items-center justify-end gap-1.5 text-[11.5px] text-(--ink-soft)">
+        <div className="mt-0.5 flex items-center justify-start gap-1.5 text-[11.5px] sm:justify-end text-(--ink-soft)">
           {/* Stock against the reorder threshold: empty at zero, full at twice the threshold. */}
           {low && alert.threshold ? <MiniBar value={alert.stock / (alert.threshold * 2)} tone={soldOut ? "danger" : "warn"} /> : null}
           {alert.days_of_cover != null && !soldOut ? <span>{coverLabel(alert.days_of_cover)}</span> : soldOut ? <span>sold out</span> : null}
