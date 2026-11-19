@@ -102,6 +102,9 @@ async def cart_set_quantity(
 # Single-process hosting: with STOREFRONT_STATIC_DIR set to the storefront's static export
 # (STATIC_EXPORT=1 npm run build), this API also serves the storefront pages on the same origin.
 # Mounted last so every /api route and /products wins.
+_merchant_static_dir = os.environ.get("MERCHANT_STATIC_DIR")
+if _merchant_static_dir:
+    app.mount("/merchant", StaticFiles(directory=_merchant_static_dir, html=True), name="merchant-portal")
 _static_dir = os.environ.get("STOREFRONT_STATIC_DIR")
 if _static_dir:
     app.mount("/", StaticFiles(directory=_static_dir, html=True), name="storefront")

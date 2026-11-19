@@ -142,7 +142,7 @@ function InventoryRow({ alert, onAskAssistant }: { alert: InventoryAlert; onAskA
 function Insights({ insights, onAskAssistant }: { insights: HomeInsight[]; onAskAssistant: (text: string) => void }) {
   if (insights.length === 0) return null;
   return (
-    <Panel title="From the assistant" icon={<KindIcon icon="spark" tone="accent" size={24} />}>
+    <Panel title="Sample insights (demo data)" icon={<KindIcon icon="spark" tone="accent" size={24} />}>
       <ul className="divide-y divide-(--line)">
         {insights.map((insight) => (
           <li key={insight.insight_id} className="px-[18px] py-2.5">

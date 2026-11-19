@@ -9,7 +9,7 @@ import GenerativeBlock from "./generative";
 
 const COPY = {
   title: "Merchant assistant",
-  intro: "Ask about performance, inventory, pricing, or campaigns.",
+  intro: "AI is turned off on this server, so the assistant cannot answer here. Everything in this portal is fictional sample data.",
   starters: [
     "What needs my attention this morning?",
     "How did sales do this week compared to last?",

@@ -239,6 +239,9 @@ export default function ShopPage() {
           <a href="/?assistant" className="rounded-md px-2 py-1.5 text-(--ink-soft) sm:px-3">
             Assistant
           </a>
+          <a href="/merchant/" className="rounded-md px-2 py-1.5 text-(--ink-soft) sm:px-3">
+            Merchant
+          </a>
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-3 text-sm">
           <span className="hidden text-(--ink-soft) sm:inline">Demo shopper</span>

@@ -15,6 +15,11 @@ if [ ! -f deploy/site/index.html ]; then
   mkdir -p deploy/site
   unzip -q -o deploy/storefront-export.zip -d deploy/site
 fi
+if [ -f deploy/merchant-export.zip ] && [ ! -f deploy/merchant-site/index.html ]; then
+  mkdir -p deploy/merchant-site
+  unzip -q -o deploy/merchant-export.zip -d deploy/merchant-site
+fi
+if [ -f deploy/merchant-site/index.html ]; then export MERCHANT_STATIC_DIR="$ROOT/deploy/merchant-site"; fi
 export STOREFRONT_STATIC_DIR="$ROOT/deploy/site"
 export STOREFRONT_DIRECT_ADD="${STOREFRONT_DIRECT_ADD:-1}"
 export DEMO_ALLOWED_HOSTS="${DEMO_ALLOWED_HOSTS:-*.agt.novamail.store}"
