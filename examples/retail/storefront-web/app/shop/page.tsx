@@ -82,6 +82,7 @@ export default function ShopPage() {
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [checkout, setCheckout] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
   const [cartOpen, setCartOpen] = useState(false);
   const [cmp, setCmp] = useState<string[]>([]);
   const [cmpOpen, setCmpOpen] = useState(false);
@@ -90,6 +91,7 @@ export default function ShopPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       setCmpOpen(false);
+      setCheckout(false);
       setOpen(null);
       setCartOpen(false);
     };
@@ -212,14 +214,9 @@ export default function ShopPage() {
           <span>Subtotal</span>
           <span className="font-bold">{formatMoney(cart?.subtotal ?? 0, cart?.currency)}</span>
         </div>
-        {checkout ? (
-          <div role="status" className="mb-2 rounded-lg bg-(--well) p-3 text-xs text-(--ink-2)">
-            <b>Demo checkout.</b> This store is a demonstration with fictional products. No payment is taken and no order is placed.
-          </div>
-        ) : null}
         <button
           disabled={!count}
-          onClick={() => setCheckout(true)}
+          onClick={() => { setStep(1); setCheckout(true); }}
           className="w-full rounded-lg bg-(--ink) px-3 py-2.5 text-sm font-semibold text-(--surface) disabled:opacity-40"
         >
           Check out (demo)
@@ -388,6 +385,43 @@ export default function ShopPage() {
         </main>
         <div className="hidden w-[340px] shrink-0 border-l border-(--well) md:block">{cartPanel}</div>
       </div>
+      {checkout && cart ? (
+        <div className="fade-in fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setCheckout(false)}>
+          <div role="dialog" aria-label="Demo checkout" className="dialog-in max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5" onClick={(e) => e.stopPropagation()}>
+            <ol className="mb-4 flex items-center gap-2 text-xs font-semibold" aria-label="Checkout steps">
+              {["Review", "Demo confirmation"].map((label, i) => (
+                <li key={label} className="flex flex-1 items-center gap-2">
+                  <span className={`grid h-6 w-6 place-items-center rounded-full ${step >= i + 1 ? "bg-(--ink) text-(--surface)" : "bg-(--well)"} step-dot`}>{i + 1}</span>
+                  <span className={step >= i + 1 ? "" : "text-(--ink-soft)"}>{label}</span>
+                  <span className={`step-line h-0.5 flex-1 rounded ${step > i + 1 ? "bg-(--ink)" : "bg-(--well)"}`} />
+                </li>
+              ))}
+            </ol>
+            {step === 1 ? (
+              <div className="tile-in">
+                <h2 className="mb-2 text-lg font-bold">Review your cart</h2>
+                <ul className="divide-y text-sm">
+                  {cart.items.map((it) => (
+                    <li key={it.product_id} className="flex justify-between gap-3 py-2"><span>{it.quantity} x {it.title}</span><span className="font-semibold">{formatMoney(it.line_total, cart.currency)}</span></li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex justify-between text-sm"><span>Subtotal</span><b>{formatMoney(cart.subtotal, cart.currency)}</b></div>
+                <p className="mt-1 text-xs text-(--ink-soft)">Shipping and tax are not calculated in this demo.</p>
+                <div className="mt-4 flex gap-2">
+                  <button onClick={() => setCheckout(false)} className="rounded-lg border px-3 py-2 text-sm">Keep shopping</button>
+                  <button onClick={() => setStep(2)} className="flex-1 rounded-lg bg-(--ink) px-3 py-2 text-sm font-semibold text-(--surface)">Continue (demo)</button>
+                </div>
+              </div>
+            ) : (
+              <div className="tile-in" role="status">
+                <h2 className="mb-2 text-lg font-bold">This is a demo</h2>
+                <p className="text-sm text-(--ink-2)">No payment was taken and no order was created. The store uses fictional products and a fixed sample shopper. Your cart stays as it is.</p>
+                <button onClick={() => setCheckout(false)} className="mt-4 w-full rounded-lg bg-(--ink) px-3 py-2 text-sm font-semibold text-(--surface)">Back to the shop</button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
       {cmp.length > 0 ? (
         <div className="tray-in fixed bottom-3 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-(--ink) px-4 py-2.5 text-sm text-(--surface) shadow-xl">
           <span>{cmp.length} to compare</span>
